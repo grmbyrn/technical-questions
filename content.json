@@ -1,0 +1,5756 @@
+[
+  {
+    "slug": "javascript-language-fundamentals",
+    "order": 0,
+    "number": "1",
+    "group": "CORE JAVASCRIPT",
+    "title": "JavaScript — Language Fundamentals",
+    "status": "answered",
+    "questions": [
+      {
+        "prompt": "What’s the difference between == and ===?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "=== is strict equality: it compares type and value with no conversion, so if the types differ the answer is false. == is loose equality: it converts the operands to a common type first and then compares."
+          },
+          {
+            "type": "p",
+            "text": "In practice I use === everywhere. The one exception I deliberately make is x == null, which is a concise way of catching both null and undefined at once. Everything else is clearer written explicitly."
+          },
+          {
+            "type": "p",
+            "text": "The rules worth knowing are that null and undefined are loosely equal to each other and to nothing else, NaN is not equal to anything including itself, and objects are compared by reference under both operators — two identical-looking objects are never equal."
+          },
+          {
+            "type": "code",
+            "text": "1 == '1'      // true\n1 === '1'     // false\nnull == undefined   // true\nnull == 0     // false\nNaN === NaN   // false"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "What does == do when comparing null and undefined?",
+            "body": [
+              {
+                "type": "p",
+                "text": "They are loosely equal to each other, and that is the whole rule — null and undefined are not loosely equal to 0, to an empty string, or to false. The spec special-cases them rather than converting them to numbers."
+              },
+              {
+                "type": "p",
+                "text": "That is exactly why x == null is a useful idiom: it means is this nullish, and nothing else slips through it."
+              }
+            ]
+          },
+          {
+            "prompt": "Is there ever a case where you would deliberately use ==?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Only the null check. Some codebases ban it entirely and use x === null || x === undefined, or the ?? operator, which is fine too. Outside of that I would treat a == in a code review as a mistake until proven otherwise."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between a variable that is null, undefined, or undeclared, and how do you check for each?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "undefined means the variable exists but has no value — that is what you get from a declared-but-unassigned variable, a missing function argument, a property that is not there, or a function with no return. null is an assigned value that means deliberately empty; the engine never produces it on its own, a developer does."
+          },
+          {
+            "type": "p",
+            "text": "Undeclared means the identifier was never declared at all. Reading it throws a ReferenceError."
+          },
+          {
+            "type": "p",
+            "text": "For checking: x === undefined or x === null when I know the variable exists, x == null when I want either, and typeof x === 'undefined' when the variable might not be declared at all, because typeof is the one operator that does not throw on an unknown identifier."
+          },
+          {
+            "type": "code",
+            "text": "let a;\na === undefined        // true\ntypeof notDeclared     // 'undefined', no throw\nnotDeclared            // ReferenceError"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "Why does typeof null return object?",
+            "body": [
+              {
+                "type": "p",
+                "text": "It is a bug from the very first implementation of JavaScript. Values were stored with a type tag in the low bits, and the tag for objects was 000. null was represented as the null pointer, all zeros, so it read as an object."
+              },
+              {
+                "type": "p",
+                "text": "It was proposed as a fix and rejected because too much code depends on it. So it stays, and you check for null with x === null."
+              }
+            ]
+          },
+          {
+            "prompt": "Why is typeof safe on an undeclared variable when a direct reference throws?",
+            "body": [
+              {
+                "type": "p",
+                "text": "It is specified that way — typeof was deliberately given an escape hatch so feature detection could work before a global existed. It returns the string 'undefined' rather than evaluating the reference."
+              },
+              {
+                "type": "p",
+                "text": "Worth adding that this does not save you inside the temporal dead zone: typeof on a let or const before its declaration still throws."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What are the various data types in JavaScript?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "There are seven primitives — string, number, boolean, null, undefined, symbol and bigint — and then object, which covers everything else: plain objects, arrays, functions, dates, maps, sets, regexes."
+          },
+          {
+            "type": "p",
+            "text": "The distinction that actually matters is that primitives are immutable and copied by value, while objects are handled by reference."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "Where do Symbol and BigInt fit in, and what are they for?",
+            "body": [
+              {
+                "type": "p",
+                "text": "A symbol is a guaranteed-unique value, mainly used as a property key that cannot collide with anything else. The well-known symbols are the interesting part — implementing Symbol.iterator is what makes your own object work with for...of and the spread operator."
+              },
+              {
+                "type": "p",
+                "text": "BigInt exists because Number is a double and loses precision above 2 to the 53. BigInt handles arbitrarily large integers, with the catch that you cannot mix it with Number in arithmetic without converting explicitly."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between primitive and non-primitive (reference) types?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "A variable holding a primitive holds the value itself. A variable holding an object holds a reference to it, so two variables can point at the same object and a change through one is visible through the other."
+          },
+          {
+            "type": "p",
+            "text": "It also means equality behaves differently: two objects with identical contents are never === to each other, because you are comparing references, not contents."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "What happens when you pass an object into a function and reassign the parameter inside it?",
+            "body": [
+              {
+                "type": "p",
+                "text": "The caller sees nothing. The parameter is a local copy of the reference, so reassigning it just points the local name at something else."
+              },
+              {
+                "type": "p",
+                "text": "But if you mutate the object rather than reassigning the parameter, the caller does see it, because both names still point at the same object. JavaScript is pass-by-value where the value can itself be a reference — sometimes called pass by sharing."
+              },
+              {
+                "type": "code",
+                "text": "function f(o) { o = { x: 2 }; }   // caller unaffected\nfunction g(o) { o.x = 2; }        // caller sees x === 2"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What is type coercion? Walk through a tricky coercion example.",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "Coercion is the implicit conversion the engine does when an operation gets a type it did not expect. The two rules that explain most of it: the + operator concatenates if either side ends up a string and otherwise adds as numbers, and every other arithmetic operator converts to number first."
+          },
+          {
+            "type": "p",
+            "text": "Objects get converted through ToPrimitive, which tries valueOf and then toString. That is why an empty array becomes an empty string and a plain object becomes '[object Object]'."
+          },
+          {
+            "type": "code",
+            "text": "1 + '2'        // '12'   (string wins for +)\n1 - '2'        // -1     (- has no string mode)\n[] + []        // ''\n[] + {}        // '[object Object]'\n[] == false    // true    (both convert to 0)"
+          },
+          {
+            "type": "p",
+            "text": "The one I usually offer is [] == false being true: the array becomes an empty string, the empty string becomes 0, false becomes 0, and 0 equals 0. Which is a good argument for using ===."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "Why does [] + {} differ from {} + []?",
+            "body": [
+              {
+                "type": "p",
+                "text": "As expressions they do not — both produce '[object Object]'. The difference only shows up when {} appears at the start of a statement, which is where a browser console typically evaluates it. There it is parsed as an empty block, not an object, so what is left is +[], the unary plus on an empty array, which is 0."
+              },
+              {
+                "type": "p",
+                "text": "So the classic gotcha is really a parsing quirk, not a coercion one. Wrapping it in parentheses makes both give the same answer."
+              }
+            ]
+          },
+          {
+            "prompt": "How does the + operator decide between concatenation and addition?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Both operands go through ToPrimitive first. If either result is a string, it concatenates. Otherwise it converts both to numbers and adds. That single rule accounts for most surprising + results."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between mutable and immutable objects?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "An immutable value cannot be changed after it is created — every primitive is immutable, which is why string methods return new strings rather than editing in place. Objects and arrays are mutable by default."
+          },
+          {
+            "type": "p",
+            "text": "It matters most for change detection and for shared references. React compares state by identity, so mutating an object in place gives you the same reference and no re-render. And a mutable object passed to several places can be changed under all of them at once, which is a hard class of bug to trace."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "How would you make an object immutable, and what are the limits of Object.freeze?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Object.freeze prevents adding, removing or changing properties — but only one level deep. Nested objects are still fully mutable, so you need a recursive deep freeze if you want real guarantees."
+              },
+              {
+                "type": "p",
+                "text": "The other catch is that in sloppy mode a write to a frozen object fails silently; in strict mode, which includes all module code, it throws. For most application code the practical answer is convention plus a library like Immer rather than freezing everything."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between a shallow copy and a deep copy, and how do you make each?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "A shallow copy duplicates the top level only — nested objects are still shared references. A deep copy recursively duplicates everything, so the two are fully independent."
+          },
+          {
+            "type": "p",
+            "text": "For shallow: spread, Object.assign, Array slice, Array.from. For deep: structuredClone is now built in, or a library like lodash cloneDeep. JSON.parse(JSON.stringify(x)) still gets used but has real limitations."
+          },
+          {
+            "type": "code",
+            "text": "const shallow = { ...obj };\nconst deep = structuredClone(obj);"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "What does the spread operator actually copy?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Own enumerable properties, one level deep. It does not copy the prototype, it skips non-enumerable properties, and any nested object is copied by reference — so mutating a nested field still affects the original."
+              }
+            ]
+          },
+          {
+            "prompt": "What are the tradeoffs of structuredClone versus JSON round-tripping?",
+            "body": [
+              {
+                "type": "p",
+                "text": "JSON silently loses things: undefined values, functions and symbols disappear, Dates come back as strings, Maps and Sets become empty objects, and a circular reference throws."
+              },
+              {
+                "type": "p",
+                "text": "structuredClone handles Dates, Maps, Sets, typed arrays and circular references properly. It still cannot clone functions, DOM nodes or class instances with their prototypes intact. So structuredClone unless I need something it does not support."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between dot notation and bracket notation for property access?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "Dot notation needs a fixed, valid identifier at author time. Bracket notation takes any expression, so you use it for dynamic keys, for keys that are not valid identifiers, and for symbol keys."
+          },
+          {
+            "type": "code",
+            "text": "obj.userName        // fixed\nobj[key]            // dynamic\nobj['data-id']      // not a valid identifier"
+          }
+        ],
+        "followups": []
+      },
+      {
+        "prompt": "How does destructuring assignment work for objects and arrays?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "It unpacks values into variables — arrays by position, objects by key name. It works in function parameters too, which is where it is most useful, and you can collect the remainder with rest syntax."
+          },
+          {
+            "type": "code",
+            "text": "const [first, , third] = arr;\nconst { id, name: label = 'unnamed', ...rest } = obj;\nfunction f({ url, retries = 3 }) {}"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "How do you set a default, and when does the default actually apply?",
+            "body": [
+              {
+                "type": "p",
+                "text": "With an = after the name. The important detail is that a default only applies when the value is undefined — not for null, not for 0, not for an empty string. So a null coming back from an API will not be replaced by your default."
+              }
+            ]
+          },
+          {
+            "prompt": "How do you destructure a nested property and rename it at the same time?",
+            "body": [
+              {
+                "type": "p",
+                "text": "You nest the pattern and use a colon for renaming. Worth noting the colon means rename here, not type annotation, which trips people up coming from TypeScript."
+              },
+              {
+                "type": "code",
+                "text": "const { user: { name: userName = 'anon' } } = data;"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "How do ES6 template literals work? Give an example.",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "Backticks instead of quotes, with ${} for interpolating any expression, and newlines are preserved without escaping. That is most of it."
+          },
+          {
+            "type": "code",
+            "text": "const msg = `Hi ${user.name}, you have ${count} item${count === 1 ? '' : 's'}.`;"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "What is a tagged template, and what would you use one for?",
+            "body": [
+              {
+                "type": "p",
+                "text": "You put a function name in front of the literal, and it receives the static string parts as an array plus the interpolated values separately. That separation lets you process the values before they are inserted."
+              },
+              {
+                "type": "p",
+                "text": "It is what powers styled-components, and it is the right tool for anything where interpolated values need escaping — safe HTML, or a SQL builder that parameterises the values instead of concatenating them."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What does 'use strict' do, and what are its advantages and disadvantages?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "It opts a script or function into strict mode. Assigning to an undeclared variable throws instead of creating a global, this is undefined in a plain function call rather than the global object, duplicate parameter names and octal literals become syntax errors, and operations that used to fail silently — like writing to a frozen object — now throw."
+          },
+          {
+            "type": "p",
+            "text": "The advantage is that a whole class of bugs becomes loud instead of silent, and it lets engines optimise more aggressively. The disadvantage is that it can break older code, and historically concatenating files could apply one file's strict directive to another that was not written for it."
+          },
+          {
+            "type": "p",
+            "text": "In modern code you rarely type it, because ES modules and class bodies are strict automatically."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "Why are ES modules always in strict mode?",
+            "body": [
+              {
+                "type": "p",
+                "text": "It was a clean break — modules were new syntax, so there was no legacy code to preserve compatibility with. The committee took the opportunity to make the safer behaviour the only behaviour."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "Is JavaScript statically or dynamically typed, and strongly or weakly typed?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "Dynamically typed and weakly typed. Dynamic means types belong to values rather than variables and are checked at runtime, so the same variable can hold a string and then a number. Weak means the engine will implicitly convert between types rather than refusing."
+          },
+          {
+            "type": "p",
+            "text": "TypeScript adds a static layer on top, but it is entirely compile time — the types are erased in the output, so at runtime you are still running dynamically typed, weakly typed JavaScript. That is exactly why you still validate data at API boundaries."
+          }
+        ],
+        "followups": []
+      },
+      {
+        "prompt": "How do you iterate over object properties versus array items?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "For objects I use Object.keys, Object.values or Object.entries and then iterate that array — entries with destructuring is usually the most readable. For arrays, for...of when I want break or await, and map, filter or reduce when I am transforming."
+          },
+          {
+            "type": "code",
+            "text": "for (const [key, value] of Object.entries(obj)) {}\nfor (const item of arr) {}"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "What is the difference between for...in and for...of?",
+            "body": [
+              {
+                "type": "p",
+                "text": "for...in enumerates enumerable string keys, including inherited ones from the prototype chain. for...of iterates the values of anything iterable, which it does by calling Symbol.iterator — so it works on arrays, strings, Maps, Sets and generators, but not on plain objects."
+              }
+            ]
+          },
+          {
+            "prompt": "Why is for...in risky on arrays?",
+            "body": [
+              {
+                "type": "p",
+                "text": "It gives you keys as strings rather than numbers, it will pick up any extra properties added to the array or its prototype, and the order is not guaranteed the way array iteration order is. for...of or a normal loop avoids all three."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between .forEach() and .map(), and when would you use each?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "map returns a new array containing whatever the callback returned, the same length as the original. forEach returns undefined and exists purely for side effects."
+          },
+          {
+            "type": "p",
+            "text": "So the rule I use is: if I want a new array out, map; if I am doing something for each item and not building anything, forEach. Using map and throwing away the result is a smell, because it allocates an array nobody reads."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "Why can you not break out of a forEach, and what would you use instead?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Because the callback is a function — return exits that one call, not the loop, and there is no way to signal the iteration to stop. It also cannot await sensibly, since forEach ignores the returned promise."
+              },
+              {
+                "type": "p",
+                "text": "If I need to stop early I use for...of with break, or some, every, find or findIndex, which short-circuit by design."
+              }
+            ]
+          },
+          {
+            "prompt": "What do reduce, filter, some and every add on top of these?",
+            "body": [
+              {
+                "type": "p",
+                "text": "filter selects a subset, reduce folds a list down to a single value of any shape — a number, an object, a grouped map. some and every return booleans and stop as soon as the answer is known. reduce is the one to reach for carefully; if a plain loop reads better, use the loop."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "How would you make duplicate([1,2,3,4,5]) return [1,2,3,4,5,1,2,3,4,5]?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "Spread it twice, or concat it with itself. Both return a new array rather than mutating the input, which is what I would want."
+          },
+          {
+            "type": "code",
+            "text": "const duplicate = arr => [...arr, ...arr];\n// or\nconst duplicate = arr => arr.concat(arr);"
+          }
+        ],
+        "followups": []
+      },
+      {
+        "prompt": "How would you write FizzBuzz for the numbers 1 to 100?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "Straightforward version first, and the thing to get right is checking 15 before 3 and 5."
+          },
+          {
+            "type": "code",
+            "text": "for (let i = 1; i <= 100; i++) {\n  let out = '';\n  if (i % 3 === 0) out += 'Fizz';\n  if (i % 5 === 0) out += 'Buzz';\n  console.log(out || i);\n}"
+          },
+          {
+            "type": "p",
+            "text": "Building the string up avoids the separate 15 case entirely, which is a small thing but interviewers usually notice it."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "How would you make it extensible so new rules can be added without touching the loop?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Move the rules into data and have the loop read them. Adding a new rule then means adding one entry, and the loop never changes — which is the open-closed principle in about six lines."
+              },
+              {
+                "type": "code",
+                "text": "const rules = [[3, 'Fizz'], [5, 'Buzz'], [7, 'Bang']];\n\nfor (let i = 1; i <= 100; i++) {\n  const out = rules\n    .filter(([n]) => i % n === 0)\n    .map(([, word]) => word)\n    .join('');\n  console.log(out || i);\n}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "javascript-scope-hoisting-closures",
+    "order": 1,
+    "number": "2",
+    "group": "CORE JAVASCRIPT",
+    "title": "JavaScript — Scope, Hoisting & Closures",
+    "status": "answered",
+    "questions": [
+      {
+        "prompt": "What is hoisting, and how does it differ between var, let and const?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "Hoisting is that declarations are processed when a scope is created, before any code inside it runs. So the name already exists before the line that declares it. What differs is what the name holds during that gap."
+          },
+          {
+            "type": "p",
+            "text": "A var is created and initialised to undefined, so reading it early gives you undefined rather than an error. A let or const is created but deliberately left uninitialised, so reading it early throws a ReferenceError. That gap is the temporal dead zone."
+          },
+          {
+            "type": "p",
+            "text": "So the common shorthand that let and const are not hoisted is not quite right — they are hoisted, they just are not initialised. The proof is that a let shadows an outer variable of the same name from the very top of the block, not from its declaration line."
+          },
+          {
+            "type": "code",
+            "text": "console.log(a);   // undefined\nvar a = 1;\n\nconsole.log(b);   // ReferenceError\nlet b = 2;\n\nconst x = 'outer';\n{\n  console.log(x); // ReferenceError, not 'outer'\n  let x = 'inner';\n}"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "Are let and const hoisted at all?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Yes. The binding is created when the scope is entered; what is missing is the initialisation. The shadowing example above is the evidence — if let were not hoisted, that log would simply find the outer x instead of throwing."
+              }
+            ]
+          },
+          {
+            "prompt": "What is actually moved at compile time — the declaration, the assignment, or both?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Nothing physically moves. Hoisting is a useful mental model, not a description of what the engine does — it registers the declarations when it sets up the scope, and the code stays where you wrote it."
+              },
+              {
+                "type": "p",
+                "text": "Only the declaration is registered. The assignment runs when execution reaches that line, which is why var a = 1 behaves like two separate steps: the name exists from the top, the value arrives on the line."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "How does hoisting work for function declarations versus function expressions?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "A function declaration is hoisted with its body, so you can call it above the point where it is written. A function expression only hoists the variable it is assigned to, and the function itself is not created until that line runs."
+          },
+          {
+            "type": "p",
+            "text": "So calling a var function expression early gives a TypeError — the name exists and holds undefined, and undefined is not a function. With let or const you get a ReferenceError from the temporal dead zone instead. Arrow functions are just expressions, so they behave the same way."
+          },
+          {
+            "type": "code",
+            "text": "declared();    // works\nfunction declared() {}\n\nexpressed();   // TypeError: expressed is not a function\nvar expressed = function () {};\n\narrow();       // ReferenceError\nconst arrow = () => {};"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "What happens if you declare a function and a variable with the same name?",
+            "body": [
+              {
+                "type": "p",
+                "text": "The function declaration wins during scope setup, and then the assignment overwrites it when execution reaches that line. So before the line the name is the function, and after it the name is whatever you assigned."
+              },
+              {
+                "type": "p",
+                "text": "If the var has no initialiser it does not reset the name to undefined — the function survives. Worth adding that a let or const clashing with a function declaration in the same scope is a SyntaxError instead, which is a much better outcome than the silent overwrite."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "How can you avoid problems related to hoisting?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "Use const by default and let when you genuinely reassign, and stop using var. That alone converts the silent undefined bugs into loud errors at the point of the mistake."
+          },
+          {
+            "type": "p",
+            "text": "Beyond that: declare things before you use them, and keep functions small enough that the distance between a declaration and its use is short. A linter rule like no-use-before-define catches whatever is left."
+          },
+          {
+            "type": "p",
+            "text": "In practice this is mostly a historical problem now. With modules and block scoping, the classic hoisting bugs rarely come up in new code — you meet them reading old code."
+          }
+        ],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between global scope, function scope and block scope?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "Global scope is the outermost one, reachable from everywhere. In a browser, a top-level var or function declaration in a classic script becomes a property of window, while let and const do not."
+          },
+          {
+            "type": "p",
+            "text": "Function scope is what var uses: the variable is visible throughout the whole function no matter which block it was written in. Block scope is what let and const use: the variable is confined to the nearest braces, whether that is an if, a loop, or a bare block."
+          },
+          {
+            "type": "p",
+            "text": "The practical consequence is that a var declared inside an if is still there after the if ends, and a let is not."
+          },
+          {
+            "type": "code",
+            "text": "function f() {\n  if (true) {\n    var a = 1;\n    let b = 2;\n  }\n  console.log(a);   // 1\n  console.log(b);   // ReferenceError\n}"
+          },
+          {
+            "type": "p",
+            "text": "One addition: a module has its own top-level scope, so the top level of a module is not the global scope. That is a large part of why modules removed the need for the old wrapping tricks."
+          }
+        ],
+        "followups": []
+      },
+      {
+        "prompt": "What is lexical scope?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "Lexical scope means a name is resolved by where it sits in the source text, not by what is happening at runtime. When a function uses a variable it did not declare, the engine looks at the enclosing scope in the source, then that scope’s enclosing scope, and so on up to global."
+          },
+          {
+            "type": "p",
+            "text": "That chain is fixed when the code is written. It is also the mechanism closures are built on — a closure is just an inner function holding on to its lexical scope after the outer function has finished."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "Is scope determined where a function is defined or where it is called?",
+            "body": [
+              {
+                "type": "p",
+                "text": "Where it is defined. The same function called from anywhere resolves its variables identically, because the scope chain was decided by the source, not the call."
+              },
+              {
+                "type": "p",
+                "text": "The contrast is this, which in a normal function is dynamic and set by the call site — that is why the two get confused. Arrow functions close over this lexically as well, which is exactly why they behave better as callbacks."
+              },
+              {
+                "type": "code",
+                "text": "const x = 'outer';\nfunction inner() { console.log(x); }\n\nfunction run() {\n  const x = 'inner';\n  inner();   // 'outer' — where it is written, not where it is called\n}\nrun();"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What is a closure, and how and why would you use one?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "A closure is a function bundled together with the scope it was created in. Because scope is lexical, an inner function keeps access to the outer function’s variables even after that outer function has returned."
+          },
+          {
+            "type": "p",
+            "text": "I use them for factory functions that bake in some configuration, for private state, and for anything callback-based that has to remember something between calls — debounce, throttle, memoisation, event handlers, once-only guards."
+          },
+          {
+            "type": "code",
+            "text": "function counter() {\n  let n = 0;\n  return () => ++n;\n}\n\nconst next = counter();\nnext();   // 1\nnext();   // 2\n\nconst other = counter();\nother();  // 1 — its own n"
+          },
+          {
+            "type": "p",
+            "text": "Worth saying in a React context that hooks are closures: every effect, handler and callback in a component closes over that particular render’s variables. Most of the confusing hook behaviour comes straight from that."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "What is actually kept alive in memory by a closure?",
+            "body": [
+              {
+                "type": "p",
+                "text": "The variable binding, not a snapshot of the value. The closure points at the live variable, so if anything else reassigns it the closure sees the new value — which is why several closures over the same variable share it."
+              },
+              {
+                "type": "p",
+                "text": "Engines generally keep only the variables a closure actually references rather than the whole enclosing scope, but that is an optimisation and not something I would design around."
+              }
+            ]
+          },
+          {
+            "prompt": "Give a case where a closure causes a memory leak.",
+            "body": [
+              {
+                "type": "p",
+                "text": "A long-lived closure holding a reference to something big. The classic is an event listener on an element that lives for the whole session, whose handler closes over a large object or a detached DOM node — while the listener is attached, none of it can be collected."
+              },
+              {
+                "type": "p",
+                "text": "A setInterval that is never cleared does the same thing, and so does a cache that keeps closures. The fixes are the obvious ones: remove the listener, clear the interval, drop the reference — in React, that is what the cleanup function returned from useEffect is for."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "How can closures be used to create private variables?",
+        "difficulty": "E",
+        "body": [
+          {
+            "type": "p",
+            "text": "Declare the state inside a function and return only the functions that operate on it. Nothing outside holds a reference to the variable, so it cannot be read or written except through what you chose to expose."
+          },
+          {
+            "type": "p",
+            "text": "This is the basis of both the module pattern and ordinary factory functions, and unlike a leading underscore it is real privacy rather than a naming convention."
+          },
+          {
+            "type": "code",
+            "text": "function makeAccount(balance) {\n  return {\n    deposit: (n) => { balance += n; },\n    get: () => balance,\n  };\n}\n\nconst acc = makeAccount(100);\nacc.deposit(50);\nacc.get();     // 150\nacc.balance;   // undefined — no way in"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "How does this compare to the # private field syntax in classes?",
+            "body": [
+              {
+                "type": "p",
+                "text": "A # field is privacy enforced by the language rather than by scope. Touching one from outside is a SyntaxError, not just undefined, and it is visible in the class body, which reads better than inferring privacy from what a factory happens to return."
+              },
+              {
+                "type": "p",
+                "text": "The trade-off is memory. Closure privacy gives every instance its own copy of every method, while class methods live once on the prototype. For a handful of objects that is irrelevant; for thousands it is not. I would use # in a class-based codebase and closures in a functional one."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "What are the potential pitfalls of using closures?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "Retention is the main one. A closure keeps its scope alive, so if the closure itself is long-lived it can hold on to far more memory than you intended."
+          },
+          {
+            "type": "p",
+            "text": "The second is stale values. A closure captures the binding it was created with, so a callback created in one render or one iteration can later read something that is no longer current. That is exactly the stale closure problem in React, where a handler with a missing dependency keeps seeing the first render’s state."
+          },
+          {
+            "type": "p",
+            "text": "Then there is the loop case, where every closure created with var shares one variable, and the general readability cost — state hidden in a scope is harder to inspect in a debugger than a plain object."
+          },
+          {
+            "type": "p",
+            "text": "None of these are arguments against closures. They are arguments for being deliberate about what you capture and how long the closure lives."
+          }
+        ],
+        "followups": []
+      },
+      {
+        "prompt": "What is the module pattern / IIFE, and why was it used?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "An IIFE is a function expression that is invoked as soon as it is defined. Before modules existed, every script shared one global scope, so any top-level var went onto window and could collide with another library."
+          },
+          {
+            "type": "p",
+            "text": "Wrapping a file in an IIFE gave it a private scope and let it return only what it wanted to expose. That is the module pattern, and it is how essentially every library of the jQuery era was built."
+          },
+          {
+            "type": "code",
+            "text": "var Counter = (function () {\n  var n = 0;                                  // private\n  function inc() { return ++n; }              // private\n  return { inc: inc };                        // the public surface\n})();"
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "What replaced it, and why?",
+            "body": [
+              {
+                "type": "p",
+                "text": "ES modules. Each module has its own top-level scope, so nothing leaks by default, and import and export are explicit rather than a matter of assigning to a global and hoping about load order."
+              },
+              {
+                "type": "p",
+                "text": "The bigger win is that modules are statically analysable. A bundler can see which exports are actually used and drop the rest, which is what tree shaking depends on and what it cannot do with an object assembled at runtime by an IIFE."
+              },
+              {
+                "type": "p",
+                "text": "IIFEs have not disappeared — they are still a bundler output format, and still handy for scoping a block of setup code — but not as a module system."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "prompt": "Why does function foo(){}(); not work as an IIFE, and how do you fix it?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "Because at the start of a statement that is parsed as a function declaration, and a declaration is not something you can invoke. The trailing parentheses are then read as a separate grouping, and because they are empty it is a SyntaxError."
+          },
+          {
+            "type": "p",
+            "text": "Whether function is a declaration or an expression comes down to position, so the fix is to put it somewhere an expression is expected. Wrapping it in parentheses is the usual way."
+          },
+          {
+            "type": "code",
+            "text": "function foo(){}();            // SyntaxError\n\n(function () { /* ... */ })();  // parens around the function\n(function () { /* ... */ }());  // or around the whole call\n!function () { /* ... */ }();   // an operator works too"
+          },
+          {
+            "type": "p",
+            "text": "The !function form shows up in older minified code because it saves a byte; void and unary + do the same job. With a named function you could equally just declare it and call it on the next line — the whole trick only exists to avoid the name."
+          }
+        ],
+        "followups": []
+      },
+      {
+        "prompt": "What is the temporal dead zone, and why do let and const trigger it but var does not?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "The temporal dead zone is the stretch between entering a scope and executing the declaration, during which a let or const binding exists but cannot be touched. Reading or writing it throws a ReferenceError."
+          },
+          {
+            "type": "p",
+            "text": "var has no dead zone because it was specified to initialise to undefined the moment it is created. let and const came later and were designed on purpose so that using something before you declare it is an error rather than a silent undefined."
+          },
+          {
+            "type": "p",
+            "text": "const needs it particularly badly — a const cannot be assigned after creation, so there is no sensible value to give it before its declaration has run."
+          },
+          {
+            "type": "code",
+            "text": "{\n  typeof t;   // ReferenceError — typeof does not save you here\n  let t = 1;\n}"
+          },
+          {
+            "type": "p",
+            "text": "The detail worth adding is that the dead zone is about time, not position. A function written above a let can read it perfectly well, as long as it is not called until after the declaration has run."
+          }
+        ],
+        "followups": []
+      },
+      {
+        "prompt": "Why does a var inside a for loop capture the same variable across iterations, and how does let fix that?",
+        "difficulty": "M",
+        "body": [
+          {
+            "type": "p",
+            "text": "Because var is function-scoped, so there is only one variable for the entire loop. Every closure created inside the loop points at that same binding, and by the time deferred callbacks run the loop has finished, so they all read the final value."
+          },
+          {
+            "type": "p",
+            "text": "let fixes it because the spec creates a fresh binding for each iteration and copies the previous value into it. Each closure captures its own, so each one sees the value from its own pass."
+          },
+          {
+            "type": "code",
+            "text": "for (var i = 0; i < 3; i++) setTimeout(() => console.log(i));\n// 3 3 3\n\nfor (let i = 0; i < 3; i++) setTimeout(() => console.log(i));\n// 0 1 2"
+          },
+          {
+            "type": "p",
+            "text": "That per-iteration binding is a specific rule for let in a for loop, not just a consequence of block scoping — which is worth saying, because it is the part people assume rather than know."
+          }
+        ],
+        "followups": [
+          {
+            "prompt": "How would you have solved this before let existed?",
+            "body": [
+              {
+                "type": "p",
+                "text": "An IIFE per iteration, passing i in as an argument so each call gets its own copy. The extra function is the whole point — it creates the scope that var will not."
+              },
+              {
+                "type": "code",
+                "text": "for (var i = 0; i < 3; i++) {\n  (function (j) {\n    setTimeout(() => console.log(j));\n  })(i);\n}"
+              },
+              {
+                "type": "p",
+                "text": "In practice people reached for forEach instead, since the callback parameter gives you a per-item binding for free and reads far better. setTimeout’s trailing-arguments form was another way round it."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "javascript-functions-this-prototypes-oop",
+    "order": 2,
+    "number": "3",
+    "group": "CORE JAVASCRIPT",
+    "title": "JavaScript — Functions, this, Prototypes & OOP",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How does this work in JavaScript, and what are the different ways it can be bound?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is this in a plain function call in strict mode versus non-strict?",
+            "body": []
+          },
+          {
+            "prompt": "How does an arrow function decide its this?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does this behave inside event handlers?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What breaks when you pass a method directly as a handler, and what are three ways to fix it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between .call() and .apply(), and what does Function.prototype.bind do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Can you bind an already-bound function?",
+            "body": []
+          },
+          {
+            "prompt": "How would you implement bind yourself?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s a typical use case for arrow syntax, and how does it differ from a regular function?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where would an arrow function be the wrong choice?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What advantage is there to using arrow syntax for a method in a constructor?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s a typical use case for anonymous functions?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What do you lose in a stack trace by using them?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between function foo(){} and var foo = function(){}?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between function Person(){}, const person = Person(), and const person = new Person()?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does the new keyword actually do, step by step?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is a higher-order function?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is currying, what is partial application, and how do they differ?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Write a curry function that works for any arity.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the benefits of currying and partial application?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is prototypal inheritance, and how does it differ from classical inheritance?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the prototype chain, and what happens at the end of it?",
+            "body": []
+          },
+          {
+            "prompt": "What is the difference between __proto__ and prototype?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the differences between ES2015 classes and ES5 function constructors?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Are classes purely syntactic sugar? Name something you cannot replicate with a function constructor.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does inheritance work with ES2015 classes?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does super() do, and why must it be called before using this?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the various ways to create objects in JavaScript?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why is extending built-in JavaScript objects not a good idea?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are encapsulation and polymorphism?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between composition and inheritance, and when would you use each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What problem does deep inheritance cause that composition avoids?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you create custom error objects, and how does error propagation work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does extending Error need special handling for the prototype and stack?",
+            "body": []
+          },
+          {
+            "prompt": "What happens to an error thrown inside a promise chain with no catch?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "javascript-async-the-event-loop",
+    "order": 3,
+    "number": "4",
+    "group": "CORE JAVASCRIPT",
+    "title": "JavaScript — Async & the Event Loop",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What is the event loop, and what’s the difference between the call stack and the task queue?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where does rendering fit into the loop?",
+            "body": []
+          },
+          {
+            "prompt": "What happens to the UI if a task takes 500ms?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the microtask queue, and how does it differ from the task queue?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Order the output of a snippet mixing setTimeout, Promise.then and synchronous logs.",
+            "body": []
+          },
+          {
+            "prompt": "What happens if a microtask schedules another microtask, forever?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between synchronous and asynchronous functions?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a callback function in the context of async operations?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is callback hell, and what problems does it cause beyond readability?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the different states of a Promise?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Can a settled promise change state?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the pros and cons of Promises versus callbacks?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between Promise.all, Promise.allSettled and Promise.race?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens to the other promises when Promise.all rejects?",
+            "body": []
+          },
+          {
+            "prompt": "When would you reach for Promise.any?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How can you test asynchronous code?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are debouncing and throttling, and how do they differ?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which would you use for a search input, and which for a scroll handler?",
+            "body": []
+          },
+          {
+            "prompt": "Write debounce from scratch, including a cancel method.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does garbage collection work in JavaScript?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is mark-and-sweep, and why does reference counting struggle with cycles?",
+            "body": []
+          },
+          {
+            "prompt": "What are the common sources of memory leaks in a browser app?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are Web Workers used for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What can a worker not access, and how do you get data in and out of one?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are Proxies used for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do frameworks use Proxies for reactivity?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are JavaScript polyfills for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What’s the difference between a polyfill and a transpiler?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "javascript-modules-tooling",
+    "order": 4,
+    "number": "5",
+    "group": "CORE JAVASCRIPT",
+    "title": "JavaScript — Modules & Tooling",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What are the differences between CommonJS modules and ES modules?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why can ES modules be tree-shaken when CommonJS generally cannot?",
+            "body": []
+          },
+          {
+            "prompt": "What is the difference between a static import and a dynamic import()?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the pros and cons of languages that compile to JavaScript?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What tools and techniques do you use for debugging JavaScript?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you debug something that only reproduces in production?",
+            "body": []
+          },
+          {
+            "prompt": "What do source maps give you, and why can they be a security concern?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between feature detection and feature inference?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "typescript",
+    "order": 5,
+    "number": "6",
+    "group": "LANGUAGES & MARKUP",
+    "title": "TypeScript",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between type and interface, and when would you use each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which one supports declaration merging, and when does that matter?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is a discriminated union, and when would you use one?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How does the compiler narrow it, and what makes a good discriminant?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between unknown and any, and why prefer unknown for untyped input?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What must you do before you can use an unknown value?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do generic constraints work with extends?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How would you constrain a generic to only the keys of another object?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does the infer keyword do, and when would you use it?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Write a type that extracts the element type from an array type.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you handle runtime type safety at API boundaries?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is a TypeScript interface not enough here?",
+            "body": []
+          },
+          {
+            "prompt": "How does a schema validator like Zod bridge the two?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does strictNullChecks do, and why does it matter?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you type a component that accepts arbitrary HTML props plus custom ones?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you avoid collisions between your props and the native ones?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the satisfies operator, and when would you use it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How does it differ from a plain type annotation or an as assertion?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you do exhaustive checking on a union using never?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens to that check when someone adds a new member to the union?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between union and intersection types?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are type guards and type predicates (x is T)?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When would you write a custom predicate instead of relying on narrowing?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does type narrowing work with typeof, instanceof and in?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are mapped types and conditional types?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Write a type that makes every property of T optional except one.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are template literal types?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What do keyof and indexed access (T[K]) do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "When should you use an enum versus an as const union?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does a TypeScript enum compile to, and why do some teams avoid it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What do the common utility types do — Partial, Required, Readonly, Pick, Omit, Record, Exclude, Extract, NonNullable, ReturnType, Parameters, Awaited?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What does noUncheckedIndexedAccess do?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between @ts-ignore and @ts-expect-error, and which is better?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you write a generic Stack class?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does optional chaining interact with optional types?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "html",
+    "order": 6,
+    "number": "7",
+    "group": "LANGUAGES & MARKUP",
+    "title": "HTML",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What does a doctype do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is quirks mode, and what actually changes in it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the main building blocks introduced in HTML5?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between script, script async and script defer?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which one preserves execution order across multiple scripts?",
+            "body": []
+          },
+          {
+            "prompt": "Where does a module script sit by default?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why is it best practice to put CSS links in the head and scripts just before the closing body tag, and what are the exceptions?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is progressive rendering?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why would you use the srcset attribute on an image, and how does the browser evaluate it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does the sizes attribute add, and why is it needed?",
+            "body": []
+          },
+          {
+            "prompt": "When would you reach for picture instead of srcset?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are data- attributes good for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When would a data attribute be the wrong tool?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between an attribute and a property in the DOM?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens to the value attribute of an input after a user types in it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between innerHTML and textContent?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which is the security risk, and why?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the DOM, and how is it structured?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a single-page app, and how do you make one SEO-friendly?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does a crawler see if the content is client-rendered?",
+            "body": []
+          },
+          {
+            "prompt": "How do SSR, static generation and dynamic rendering each solve this?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between the load and DOMContentLoaded events?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the disadvantages of relying on the load event, and what are the alternatives?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why does semantic HTML matter?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Give a case where a div with a click handler is meaningfully worse than a button.",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "dom-web-apis",
+    "order": 7,
+    "number": "8",
+    "group": "LANGUAGES & MARKUP",
+    "title": "DOM & Web APIs",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between document.querySelector() and document.getElementById()?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Is there a meaningful performance difference, and does it matter in practice?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between mouseenter and mouseover?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between event.preventDefault() and event.stopPropagation()?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does stopImmediatePropagation add?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you add, remove and modify HTML elements with JavaScript?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is a DocumentFragment useful when inserting many nodes?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How can two iframes on a page communicate?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does postMessage do, and why must you check the origin?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is event delegation, and why is it useful?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What are its limits — which events do not bubble?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is event bubbling, what is event capturing, and what are the event phases?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you register a listener for the capture phase, and when would you?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between a cookie, sessionStorage and localStorage?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which is sent with every request, and what does that cost you?",
+            "body": []
+          },
+          {
+            "prompt": "Which survives a tab close, and which survives a browser restart?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you manipulate CSS styles using JavaScript?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is toggling a class usually better than setting inline styles?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does the IntersectionObserver API work, and what is it commonly used for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is it better than listening to scroll events?",
+            "body": []
+          },
+          {
+            "prompt": "What do the root, rootMargin and threshold options control?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the MutationObserver API for, and when would you reach for it instead of an event listener?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "css",
+    "order": 8,
+    "number": "9",
+    "group": "LANGUAGES & MARKUP",
+    "title": "CSS",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "Center a div — give three methods (flex, grid, absolute plus transform) and say when each fits.",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which one works without knowing the element’s dimensions?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the box model, and how do you switch between box models?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What does * { box-sizing: border-box; } do, and what are its advantages?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between em, rem, %, vh/vw, ch and fr?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is em relative to for font-size versus for padding?",
+            "body": []
+          },
+          {
+            "prompt": "What is the problem with 100vh on mobile browsers?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the display property, and what are some of its values?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between block, inline and inline-block?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does vertical padding behave oddly on an inline element?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between relative, fixed, absolute, sticky and static positioning?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is an absolutely positioned element positioned relative to?",
+            "body": []
+          },
+          {
+            "prompt": "Why does position: sticky sometimes silently do nothing?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is CSS selector specificity, and how does it work?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where do inline styles and !important sit?",
+            "body": []
+          },
+          {
+            "prompt": "What is the specificity of :is(), :where() and :not()?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does a browser determine which elements match a CSS selector?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does the browser read selectors right to left?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is z-index, and how is a stacking context formed?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Name three properties other than z-index that create a stacking context.",
+            "body": []
+          },
+          {
+            "prompt": "Why can a child with z-index 9999 still sit behind another element?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is a Block Formatting Context, and how does it work?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are pseudo-elements, and what are they used for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What’s the difference between a pseudo-element and a pseudo-class?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between resetting and normalizing CSS, and which would you choose?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between Flexbox and Grid, and when would you use each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does flex: 1 actually expand to?",
+            "body": []
+          },
+          {
+            "prompt": "What is the difference between fr and percentage in a grid track?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you implement media queries or mobile-specific layouts?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Can you name an @media property other than screen?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a responsive and a mobile-first strategy?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between responsive and adaptive design?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Is there any reason to prefer translate() over absolute positioning, or vice versa?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which properties can be animated without triggering layout, and why?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are some gotchas for writing efficient CSS?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the advantages and disadvantages of CSS preprocessors, and what do you like or dislike about the ones you have used?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What do native CSS nesting and custom properties remove the need for?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you implement a design that uses non-standard fonts?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What are FOUT and FOIT, and how does font-display let you choose between them?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you fix browser-specific styling issues?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Are you familiar with styling SVG?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you visually hide content but keep it available for screen readers?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why not use display: none or visibility: hidden?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What CSS frameworks have you used, and how do utility-first frameworks compare to writing your own CSS?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you architect the CSS for a design system to avoid specificity wars?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do BEM, CSS modules and cascade layers each attack the problem?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between a CSS custom property and a Sass variable?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which one can change at runtime, and what does that enable?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What do CSS cascade layers (@layer) let you control that specificity alone does not?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a container query and a media query, and when would you use each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does this matter for a component library?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "react-core-model",
+    "order": 9,
+    "number": "10",
+    "group": "FRAMEWORKS",
+    "title": "React — Core Model",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What is React, and what are its benefits?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a React Node, a React Element and a Component?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is JSX, and how does it work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does JSX compile down to?",
+            "body": []
+          },
+          {
+            "prompt": "Why did the transform change in React 17?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between state and props?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Explain one-way data flow and its benefits.",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is the virtual DOM, how does it work, and what are its benefits and downsides?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Is the virtual DOM faster than direct DOM manipulation? Defend your answer.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is reconciliation?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What are the two assumptions the diffing heuristic relies on?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why does the diffing algorithm assume different element types produce different trees?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is React Fiber, and how is it an improvement over the previous approach?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does interruptible rendering enable that a synchronous stack reconciler could not?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the purpose of the key prop, and what are the consequences of using array indices as keys?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Show a concrete bug caused by index keys.",
+            "body": []
+          },
+          {
+            "prompt": "When are index keys actually fine?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does re-rendering mean, and what causes a component to re-render?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Does a parent re-render always re-render its children?",
+            "body": []
+          },
+          {
+            "prompt": "Why does passing an inline object or arrow function defeat React.memo?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why does React recommend against mutating state?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What comparison does React actually perform, and why does mutation defeat it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between controlled and uncontrolled components?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When is uncontrolled the better choice?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are React Fragments for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is forwardRef() used for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What changed about ref handling in React 19?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are React Portals used for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Does an event fired inside a portal bubble to the React parent or the DOM parent?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you reset a component’s state?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is changing the key often better than an effect that resets state?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are error boundaries for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What kinds of errors do they not catch?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is React strict mode, and what are its benefits?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "react-hooks",
+    "order": 10,
+    "number": "10b",
+    "group": "FRAMEWORKS",
+    "title": "React — Hooks",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What are the benefits of hooks, and what are the rules of hooks?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why can you not call hooks conditionally — what actually breaks internally?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How does React associate a hook call with its stored state?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What happens when the useState setter is called, and why is it described as asynchronous?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does logging state immediately after setting it show the old value?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the purpose of the updater (callback) form of a state setter?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Show a bug that only the updater form fixes.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does the useEffect dependency array control?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens with an empty array, and with no array at all?",
+            "body": []
+          },
+          {
+            "prompt": "Why does an object or function in the deps cause an infinite loop?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between useEffect and useLayoutEffect?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When is useLayoutEffect genuinely necessary, and what does it cost?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When should logic go in useEffect versus an event handler?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Give an example of an effect that should not have been an effect.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why does my effect run twice in development, and is that a bug?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is StrictMode trying to surface by doing this?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you handle a race condition in an async effect?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Write the cleanup for it. Would AbortController or an ignore flag be better here?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you prevent stale closures in hooks?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does a setInterval inside an effect often log stale state?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When should you use useRef?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What are the two distinct uses, and why does changing a ref not re-render?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When should you use useCallback, and when useMemo?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When is memoising actively harmful?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between useMemo and React.memo?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "When should you use useReducer instead of useState?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "When should you use useId?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What problems do useTransition and useDeferredValue solve?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between the two, and when do you pick each?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does automatic batching work in React 18?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What was not batched before 18?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Implement a custom hook: useDebounce, usePrevious, or useFetch with cleanup.",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you cancel the in-flight request when the component unmounts?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "react-state-context-patterns",
+    "order": 11,
+    "number": "10c",
+    "group": "FRAMEWORKS",
+    "title": "React — State, Context & Patterns",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What are the pitfalls of using Context, and how do you optimise it to avoid unnecessary re-renders?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does every consumer re-render when one field of the value object changes?",
+            "body": []
+          },
+          {
+            "prompt": "How does splitting the context, or memoising the value, help?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you decide between React state, context and an external state manager?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is the Flux pattern, and what are its benefits?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Explain the composition pattern.",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How does passing children solve prop drilling without Context?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Explain the presentational versus container component pattern.",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are higher-order components, and what are render props for?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What do custom hooks do better than both?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Explain the compound component pattern.",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do the pieces communicate without prop drilling?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are some React anti-patterns?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "react-rendering-data-practice",
+    "order": 12,
+    "number": "10d",
+    "group": "FRAMEWORKS",
+    "title": "React — Rendering, Data & Practice",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between Server Components and Client Components?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does the use client directive actually mark?",
+            "body": []
+          },
+          {
+            "prompt": "Can a Server Component be rendered inside a Client Component?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What can you not do in a Server Component, and why can you not pass a function as a prop to a Client Component?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What has to happen to props as they cross the boundary?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Explain server-side rendering and its benefits.",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Explain static generation and its benefits.",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Explain what React hydration is.",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is a hydration mismatch, and what commonly causes one?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is React Suspense, and what does it enable?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you handle asynchronous data loading?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are some common pitfalls when doing data fetching in React?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Waterfalls, race conditions, missing cleanup — how do you address each?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is code splitting in a React application?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where would you place the split points, and how do you avoid a loading spinner on every click?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you test React applications?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does Testing Library push you towards querying by role?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you debug React applications?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you localize React applications?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "next-js",
+    "order": 13,
+    "number": "11",
+    "group": "FRAMEWORKS",
+    "title": "Next.js",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between the App Router and the Pages Router, and when would you use each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Are components Server or Client Components by default, and how do you opt out?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a Server Action and an API Route?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When would you still want an API route?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between SSG, ISR and SSR, and when does each apply?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What makes a route switch from static to dynamic without you asking?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you revalidate cached data, both time-based and on-demand?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between revalidatePath and revalidateTag?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When would you use middleware, and what are its constraints?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why can you not query a database directly from middleware?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between redirect() and router.push()?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between layout.tsx and template.tsx?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which one preserves state across navigation?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When would you do an auth check in middleware versus a server component?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the benefits of next/image, next/font and next/dynamic?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What layout-shift problem does next/font actually solve?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between the Edge runtime and the Node runtime?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What Node APIs are unavailable at the edge, and when does that force your hand?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does streaming with Suspense or loading.tsx improve perceived performance?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is sent to the browser first, and how does the rest arrive?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you keep a Next.js site stable under very high concurrent traffic?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "vue-nuxt",
+    "order": 14,
+    "number": "12",
+    "group": "FRAMEWORKS",
+    "title": "Vue / Nuxt",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How does Vue’s reactivity system track dependencies?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is a reactive effect, and when is it re-run?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between ref and reactive, and why does ref need .value?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why can a ref hold a primitive when reactive cannot?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why can reactivity be lost when you destructure a reactive object, and how do you fix it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between computed, watch and watchEffect?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which one caches, and which runs immediately by default?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When would you use shallowRef or shallowReactive?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does Vue 3’s Proxy-based reactivity differ from Vue 2’s Object.defineProperty?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What limitations of Vue 2 did Proxies remove?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the tradeoffs between the Composition API and the Options API?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What does script setup simplify?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a composable, how would you write a simple one, and why are composables preferred over mixins?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What problems did mixins cause that composables avoid?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does v-model work, and how do you implement it on a custom component?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is it syntactic sugar for, and how do you support multiple v-models?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between v-if and v-show?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why do v-for items need a key?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you define typed props and emit typed events?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between default, named and scoped slots?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are provide and inject used for, and what are the pitfalls?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the main lifecycle hooks, and their Composition API equivalents?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is nextTick, and why is it needed?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What do Teleport and KeepAlive do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What problems do Suspense and async components solve?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is Pinia, and how does it differ from Vuex?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does Vue Router handle params, navigation guards and lazy-loaded routes?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What does Nuxt add on top of Vue, and how do useFetch and useAsyncData work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between the two, and why does the key matter?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you type a Vue component with defineProps and defineEmits?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are common reactivity pitfalls in Vue?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you optimise a Vue app’s performance?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "svelte-sveltekit",
+    "order": 15,
+    "number": "13",
+    "group": "FRAMEWORKS",
+    "title": "Svelte / SvelteKit",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How does Svelte’s compile-time reactivity differ from a virtual DOM?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does Svelte generate instead of a diffing runtime?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does it mean that Svelte is a compiler, not a runtime framework, and what does that mean for the bundle?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are runes, and why were they introduced?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What problems with the old $: syntax were they solving?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does the $state rune do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between $derived and the older $: reactive statements?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "When does $effect run, and how does it differ from $:?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does prop declaration work with $props?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you migrate Svelte 4 reactivity ($: and stores) to runes?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between writable, readable and derived stores, and what does the $ prefix do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does the bind: directive work?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between createEventDispatcher and callback props?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do slots and slot props work in Svelte?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do {#each} keys and {#await} blocks work?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does SvelteKit handle routing, load functions, and SSR versus CSR?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between a universal load and a server load function?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you manage shared state across components in Svelte?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "web-components",
+    "order": 16,
+    "number": "14",
+    "group": "FRAMEWORKS",
+    "title": "Web Components",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What are Web Components (Custom Elements, Shadow DOM, templates, slots)?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is the Shadow DOM, and how does it scope styles?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you deliberately let outside styles in?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between the Light DOM and the Shadow DOM, and how does slot work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do custom elements communicate through attributes, properties and events?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why can attributes only carry strings, and what do you do about objects?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the custom element lifecycle callbacks?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "When would you reach for Web Components over a framework component?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do Web Components interoperate with React, Vue or Svelte?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What has historically been awkward about React and custom events?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "state-management",
+    "order": 17,
+    "number": "15",
+    "group": "FRAMEWORKS",
+    "title": "State Management",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How do you decide whether state should be local, global (client) or server state?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What proportion of what teams put in a global store is actually server state?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When do you actually need a global store versus lifting state, Context or composables?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the tradeoffs between Context, Redux, Zustand and Jotai?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which of these re-render on any state change by default?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When would you choose Redux over Zustand, or vice versa?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the core concepts of Pinia, and why not just use a reactive module?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do Svelte stores and runes-based shared state handle global state?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What problem do server-state libraries like TanStack Query or SWR solve versus hand-rolled fetching?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Name four things you would have to build yourself without one.",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are optimistic updates, and how do you implement them?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What has to happen on failure?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why is it recommended to normalise state shape and avoid storing derived state?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why do most state libraries rely on immutability?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "accessibility-a11y",
+    "order": 18,
+    "number": "16",
+    "group": "CROSS-CUTTING FRONTEND",
+    "title": "Accessibility (a11y)",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How do you visually hide content but expose it to screen readers?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What ARIA roles, states and properties would a custom component such as a modal or tabs need?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you make a modal dialog fully accessible (focus trap, aria-modal, Escape, focus return)?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where should focus go when the modal opens, and where must it return to?",
+            "body": []
+          },
+          {
+            "prompt": "What does the native dialog element give you for free?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the keyboard interaction expectations for interactive widgets?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What should arrow keys do in a tab list, versus Tab itself?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "When should you reach for ARIA versus using semantic HTML?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is the first rule of ARIA to not use ARIA?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you test for accessibility?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What will automated tools never catch?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the WCAG basics around colour contrast?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "internationalisation-i18n",
+    "order": 19,
+    "number": "17",
+    "group": "CROSS-CUTTING FRONTEND",
+    "title": "Internationalisation (i18n)",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How do you serve a page with content in multiple languages?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Path prefix, subdomain or content negotiation — what are the tradeoffs?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What do you have to watch for when designing and developing multilingual sites?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How much can text expand when translated from English?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do the lang and dir attributes, text expansion, Intl formatting and pluralisation factor into i18n?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you handle right-to-left layouts in CSS?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do logical properties (inline-start, inline-end) help?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does pluralisation get complicated across languages, and how does ICU MessageFormat handle it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you manage translation files as an app grows to dozens of languages?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "performance",
+    "order": 20,
+    "number": "18",
+    "group": "CROSS-CUTTING FRONTEND",
+    "title": "Performance",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What are the common performance bottlenecks in JavaScript apps?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does caching improve performance?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is lazy loading, and when do you use it?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What should never be lazy loaded?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you optimise DOM manipulation?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is layout thrashing, and how do you avoid it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you optimise network requests?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What techniques reduce reflows and repaints?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How can Web Workers help performance?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What tools do you use to measure and analyse performance?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between lab data and field data?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the Core Web Vitals (LCP, CLS, INP), and how do you improve each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What element is usually responsible for LCP, and what are the usual fixes?",
+            "body": []
+          },
+          {
+            "prompt": "What replaced FID, and why?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do code splitting and bundle analysis help?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is list virtualisation, and when do you need it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What breaks when you virtualise — think Ctrl+F, accessibility, variable heights.",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "browser-internals",
+    "order": 21,
+    "number": "19",
+    "group": "CROSS-CUTTING FRONTEND",
+    "title": "Browser Internals",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What happens, step by step, from typing a URL to seeing the page?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where does DNS resolution actually look first?",
+            "body": []
+          },
+          {
+            "prompt": "What happens during the TLS handshake?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the critical rendering path (DOM, CSSOM, render tree, layout, paint, composite)?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is CSS render-blocking, and how do you make it less so?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between a repaint and a reflow, and what triggers each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does the browser parse HTML, CSS and JavaScript, and where do async and defer fit?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the preload scanner, and why does it matter?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the compositor thread, and why are transform and opacity cheap to animate?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you promote an element to its own layer, and why not do it everywhere?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the browser storage options and their limits?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is the same-origin policy, and how does the browser enforce it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What exactly counts as a different origin?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "build-tooling",
+    "order": 22,
+    "number": "20",
+    "group": "CROSS-CUTTING FRONTEND",
+    "title": "Build Tooling",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What does a bundler do, and why do we need one?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What makes Vite fast compared to Webpack?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is different between its dev server and its production build?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is tree-shaking, and what enables it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is a side effect, and how does sideEffects: false in package.json help?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is code splitting, and how do you trigger it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is hot module replacement?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are source maps?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between transpiling and polyfilling?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a barrel file, and how can it hurt bundle size?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What changes between a development build and a production build?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is Storybook, and what is it used for?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "networking",
+    "order": 23,
+    "number": "21",
+    "group": "BACKEND & DATA",
+    "title": "Networking",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "Can you explain AJAX in detail, and what are its advantages and disadvantages?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between XMLHttpRequest and fetch()?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Does fetch reject on a 404? What does that mean for your error handling?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you abort a request with AbortController?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is CORS, how is it configured, and what triggers a preflight?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which requests are simple and skip the preflight?",
+            "body": []
+          },
+          {
+            "prompt": "Why does a wildcard origin fail once credentials are involved?",
+            "body": []
+          },
+          {
+            "prompt": "Is CORS protecting the server or the user?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the main HTTP methods, which are idempotent, and what do the common status codes mean?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Is POST idempotent? Is PATCH?",
+            "body": []
+          },
+          {
+            "prompt": "When would you return 202, 409 or 422?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What do the HTTP caching headers (Cache-Control, ETag, If-None-Match) do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between no-cache and no-store?",
+            "body": []
+          },
+          {
+            "prompt": "What does stale-while-revalidate buy you?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between WebSockets, Server-Sent Events and polling?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which survives a proxy that buffers responses, and which reconnects automatically?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the high-level differences between HTTP/1.1, HTTP/2 and HTTP/3?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is head-of-line blocking, and which version solves it at which layer?",
+            "body": []
+          },
+          {
+            "prompt": "Does HTTP/2 make domain sharding and bundling obsolete?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between a forward proxy and a reverse proxy?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does a CDN actually reduce latency for a user on the other side of the world?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "security",
+    "order": 24,
+    "number": "22",
+    "group": "BACKEND & DATA",
+    "title": "Security",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What is XSS, and how do you prevent it?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between stored, reflected and DOM-based XSS?",
+            "body": []
+          },
+          {
+            "prompt": "Why is escaping on output safer than sanitising on input?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is CSRF, and how do you mitigate it?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How does SameSite=Lax change the picture?",
+            "body": []
+          },
+          {
+            "prompt": "Why is a token in a header not vulnerable in the same way as a cookie?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is a Content Security Policy, and what does a CSP nonce do that allowing inline scripts does not?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why does input validation matter, and where should it happen?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is client-side validation never enough?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you implement secure authentication and authorisation?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you prevent clickjacking?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you prevent SQL injection?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why do parameterised queries work where escaping fails?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the best practices for handling sensitive data?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the common security headers, and what do they do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What tools and techniques do you use to identify security vulnerabilities?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Where should you store auth tokens, and what are the tradeoffs?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which attack does httpOnly stop, and which does it not?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is SSRF, and how do you prevent an attacker from using your server to reach internal resources?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a supply-chain attack, and how would a malicious npm package end up compromising your app?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does a lockfile actually protect you from?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "testing",
+    "order": 25,
+    "number": "23",
+    "group": "BACKEND & DATA",
+    "title": "Testing",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between unit, integration and end-to-end testing?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between the test pyramid and the test trophy?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a mock, a stub and a spy?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is snapshot testing, and when is it useful?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What makes snapshot tests go stale and get rubber-stamped?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the Arrange-Act-Assert structure?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why does React Testing Library recommend querying by role first?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between userEvent and fireEvent?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What does act() do, and when do you need waitFor() or findBy*?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is MSW, and why intercept at the network level?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does Playwright handle selectors, auto-waiting and fixtures?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is code coverage, and how do you use it to assess test quality?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is 100% coverage a poor goal?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does test behaviour, not implementation mean in practice?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you test a Vue or Svelte component?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is TDD, and how does the red-green-refactor loop work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a flaky test, and how do you diagnose and fix one?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What are the usual causes — timing, shared state, ordering?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is contract testing, and why does it matter once you have multiple services?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "node-js-backend",
+    "order": 26,
+    "number": "24",
+    "group": "BACKEND & DATA",
+    "title": "Node.js / Backend",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How does the Node.js event loop work, and what are its phases?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where do I/O callbacks, timers and close handlers each run?",
+            "body": []
+          },
+          {
+            "prompt": "How does it differ from the browser event loop?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between process.nextTick, setImmediate and setTimeout(fn, 0)?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which runs first inside an I/O callback, and why is the answer different at the top level?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does Node handle concurrency if it is single-threaded?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the thread pool actually used for?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you handle CPU-intensive tasks without blocking the event loop?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between Cluster and Worker Threads?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which shares memory, and when does that matter?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is backpressure in streams, and what are the four stream types?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens if a fast producer outpaces a slow consumer?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between pipe() and pipeline()?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does pipe leak on error?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you prevent memory leaks in Node?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What are the usual culprits, and how would you find one in production?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between operational and programmer errors?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Should you ever keep the process alive after an uncaught exception?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the differences between CommonJS and ES modules in Node?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you scale a Node application?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is AsyncLocalStorage used for?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How does it let you carry a request ID through an async call chain?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you implement graceful shutdown on SIGTERM?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What has to happen in order, and what is the failure mode if you skip it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between Express and Fastify?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "express",
+    "order": 27,
+    "number": "25",
+    "group": "BACKEND & DATA",
+    "title": "Express",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What is middleware, and what does the (req, res, next) signature mean?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens if you never call next and never send a response?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why does middleware execution order matter?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does routing work, and what is express.Router() for?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does error-handling middleware work, and where does it go?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does it need four arguments?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does app.use do?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you parse the body, query and route params?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you serve static files?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you structure a production Express API?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you handle errors thrown in async route handlers?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does a rejected promise in a handler not reach your error middleware by default?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What do middleware like CORS, helmet and rate-limiting add?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "orm-prisma",
+    "order": 28,
+    "number": "26",
+    "group": "BACKEND & DATA",
+    "title": "ORM / Prisma",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What is an ORM, and what are the tradeoffs versus writing raw SQL?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When would you drop to raw SQL anyway?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is Prisma, and how does its schema-first workflow work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between prisma migrate and db push, and when do you use each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you model one-to-many and many-to-many relations in a Prisma schema?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do cascade deletes (onDelete: Cascade) work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When is a cascade delete dangerous?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is the N+1 problem, and how do include and select address it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between eager and lazy loading?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "When do you need a transaction, and how does $transaction work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between the array form and the interactive form?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the connection-pooling considerations with an ORM, especially in serverless?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does a serverless function exhaust a database connection limit?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do an ORM’s generated types help with type safety?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you run migrations safely as part of a deploy?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "auth-oauth-sessions-jwt",
+    "order": 29,
+    "number": "27",
+    "group": "BACKEND & DATA",
+    "title": "Auth (OAuth / Sessions / JWT)",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "Can you walk through the OAuth 2.0 authorization code flow end to end?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the code exchanged for, and why is that step done server-side?",
+            "body": []
+          },
+          {
+            "prompt": "What does the state parameter prevent?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What happens, step by step, in a Sign in with GitHub round trip?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the tradeoffs between session-based auth and JWT?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you revoke a JWT before it expires?",
+            "body": []
+          },
+          {
+            "prompt": "What does stateless really buy you, and what does it cost?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does session-based route protection work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Where should you store a session or token, and what do httpOnly, SameSite and Secure do?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does CSRF relate to cookie-based sessions?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are refresh tokens, and why and how are they used?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is refresh token rotation, and what attack does it detect?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between authentication and authorisation?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How should passwords be stored, and which hashing algorithms are appropriate?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is bcrypt or argon2 preferable to SHA-256, and what does the work factor do?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is PKCE, and why do single-page and mobile apps need it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What attack does it close?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between SSO and OAuth, and where does SAML fit in?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where does OpenID Connect sit relative to OAuth?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do magic links work, and what are their tradeoffs versus passwords?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "rest-api-design",
+    "order": 30,
+    "number": "28",
+    "group": "BACKEND & DATA",
+    "title": "REST API Design",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What are the core principles of REST (statelessness, cacheability, resource-orientation)?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do CRUD operations map to HTTP methods?",
+        "difficulty": "E",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between PUT and PATCH?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between REST and GraphQL, and when would you choose each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are good conventions for naming resources?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the common API versioning strategies?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What are the tradeoffs of URL versioning versus header versioning?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does a consistent error-response shape look like?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between offset and cursor pagination?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What breaks with offset pagination when rows are inserted mid-scroll?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do ETag and If-None-Match support conditional requests?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are some common REST API design pitfalls?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "databases-sql",
+    "order": 31,
+    "number": "29",
+    "group": "BACKEND & DATA",
+    "title": "Databases / SQL",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between a primary key and a foreign key?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is an index, and when should you add one?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does an index cost you on writes?",
+            "body": []
+          },
+          {
+            "prompt": "Why might the planner ignore an index you added?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does composite index column order matter, and what is a covering index?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Given an index on (a, b), which queries can use it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between INNER, LEFT and FULL OUTER JOIN?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between normalisation and denormalisation?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "When would you deliberately denormalise?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are the ACID properties?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are transaction isolation levels?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What anomaly does each level permit — dirty read, non-repeatable read, phantom?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is a transaction, and when do you use one?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is the N+1 query problem, and how do you fix it?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you optimise a slow query?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What do you look for first in an EXPLAIN plan?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between SQL and NoSQL, and when would you pick a relational versus a document database?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you handle production migrations safely (expand-contract)?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you drop a column with zero downtime?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why does connection pooling matter?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a soft delete and a hard delete, and when would you choose each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between database sharding and partitioning?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a materialised view, and how is it different from a regular view?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do read replicas help you scale a database that is read-heavy?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What consistency problem do they introduce?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are some common SQL pitfalls?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "git-ci-cd-deployment",
+    "order": 32,
+    "number": "30",
+    "group": "WORKFLOW",
+    "title": "Git, CI/CD & Deployment",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between git merge and git rebase, and when do you use each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why is rebasing a shared branch discouraged?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you resolve a merge conflict?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is git stash for?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between git fetch and git pull?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between git reset (--soft/--mixed/--hard) and git revert?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which is safe on a pushed commit, and why?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is interactive rebase, and when would you squash commits?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are the common branching strategies, and what are their tradeoffs?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why do teams doing continuous deployment tend to avoid long-lived branches?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What makes a good commit message or pull request?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you fix a bad commit that has already been pushed to a shared branch?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What typically runs in a CI pipeline on a pull request?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you set up a CI/CD pipeline with GitHub Actions?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does a platform like Vercel handle preview deploys and environment variables?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you do safe deploys and rollbacks?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What makes a deploy hard to roll back?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between a blue-green deployment and a canary deployment?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do database migrations fit into a deploy pipeline?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why must the migration usually ship before the code that depends on it?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What do you monitor in production, and how do you respond to an incident?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a monorepo, and what problems do tools like Nx or Turborepo solve?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "nosql-mongodb",
+    "order": 33,
+    "number": "31",
+    "group": "ARCHITECTURE, INFRASTRUCTURE & DATA",
+    "title": "NoSQL / MongoDB",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How do you decide between embedding and referencing related data in a MongoDB schema?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the document size limit, and when does unbounded growth bite you?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you model a one-to-many relationship in MongoDB versus in a relational database?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is the aggregation pipeline, and how does it differ from writing several separate queries?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does indexing work in MongoDB, and what makes a compound index effective?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are replica sets, and how do they provide high availability?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens during an election, and what does the application see meanwhile?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does sharding work in MongoDB, and what makes a good shard key?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What goes wrong with a monotonically increasing shard key?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Does MongoDB support multi-document transactions, and what are the tradeoffs of using them?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a key-value store, a document store and a wide-column store?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is eventual consistency, and where does it show up in NoSQL databases?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are some signs that a project should use a relational database instead?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you handle schema validation in a database that is technically schemaless?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "caching-redis",
+    "order": 34,
+    "number": "32",
+    "group": "ARCHITECTURE, INFRASTRUCTURE & DATA",
+    "title": "Caching & Redis",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between cache-aside, write-through and write-behind caching?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which one risks losing writes, and which adds latency to every write?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you decide what to cache, and for how long?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What cache eviction policies exist, and when would you pick one over another?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why is cache invalidation considered hard, and how do you approach it in practice?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you keep a cache consistent when the underlying database changes underneath it?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Would you invalidate or update on write, and why?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What data structures does Redis support, and what is a real use case for each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How would you build a leaderboard, a rate limiter and a session store in Redis?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does Redis pub/sub differ from a proper message queue?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens to a message if no subscriber is listening?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between caching at the CDN layer and caching inside your own application?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "When would you reach for Redis instead of an in-memory cache inside your Node process?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a cache stampede, and how would you prevent one?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do a lock, a stale-while-revalidate window and jittered TTLs each help?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "system-design",
+    "order": 35,
+    "number": "33",
+    "group": "ARCHITECTURE, INFRASTRUCTURE & DATA",
+    "title": "System Design",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "How would you design a URL shortener, and what are its key components?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you generate the short code, and how do you avoid collisions?",
+            "body": []
+          },
+          {
+            "prompt": "How would you handle analytics on redirects without slowing them down?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you design a basic rate limiter for an API?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where does the counter live once you have more than one server?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Can you walk me through designing the backend for a social media feed?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Fan-out on write or fan-out on read? What changes for a celebrity account?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you design a chat application supporting real-time messaging at scale?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you route a message to the right server when the recipient is connected elsewhere?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you design an autocomplete or typeahead search feature?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Where does the debouncing happen, and what does the server-side index look like?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you estimate the storage and traffic requirements for a new feature?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is the CAP theorem, and what does it actually mean to give up consistency versus availability?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does a partition look like in practice, and what does your system do during one?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between horizontal and vertical scaling, and what are the tradeoffs?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does a load balancer decide which server to send a request to?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What breaks if a user’s session lives in one server’s memory?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do leader-follower (primary-replica) setups help you scale reads?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What single points of failure would you look for when reviewing a system’s architecture?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a monolith and a distributed system in terms of how they fail?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "docker-containers",
+    "order": 36,
+    "number": "34",
+    "group": "ARCHITECTURE, INFRASTRUCTURE & DATA",
+    "title": "Docker & Containers",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between a container and a virtual machine?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a Docker image and a Docker container?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What goes into a Dockerfile, and how do layers affect build speed and image size?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why do you copy package.json and install before copying the rest of the source?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why would you use a multi-stage Docker build?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What does docker-compose solve that running individual docker run commands does not?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you handle environment-specific configuration in a containerised app?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why should secrets not be baked into the image?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "At a high level, what do Pods, Deployments and Services do in Kubernetes?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Why would you containerise a Node.js app rather than deploying it directly onto a VM?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do health checks and readiness probes affect container orchestration?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the difference between liveness and readiness, and what happens if you confuse them?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How would you debug a container that keeps crashing on startup?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "message-queues-event-driven-architecture",
+    "order": 37,
+    "number": "35",
+    "group": "ARCHITECTURE, INFRASTRUCTURE & DATA",
+    "title": "Message Queues / Event-Driven Architecture",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What problem does a message queue solve that a direct API call does not?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a queue like RabbitMQ or SQS and a log-based system like Kafka?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens to a message after it is consumed in each?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between pub/sub and point-to-point messaging?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What does at-least-once delivery mean, and how do you design a consumer to handle duplicates?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you make a message consumer idempotent?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is a dead-letter queue, and when do messages end up there?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is your process for draining one?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is event sourcing, and how does it differ from just storing current state?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What is CQRS, and what problem is it trying to solve?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you handle ordering guarantees in a distributed queue?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does partitioning by key buy you, and what does it cost in parallelism?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "graphql",
+    "order": 38,
+    "number": "36",
+    "group": "ARCHITECTURE, INFRASTRUCTURE & DATA",
+    "title": "GraphQL",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between a query, a mutation and a subscription?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How does GraphQL address the over-fetching and under-fetching problems that come up with REST?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What causes the N+1 problem in a resolver, and how does DataLoader help?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is batching versus caching within a single request?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How does client-side caching (Apollo, urql) normalise and store data?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does the cache need an id on every type?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the tradeoff of a single GraphQL endpoint versus versioning many REST endpoints?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How do you deprecate a field safely?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you handle authentication and authorisation at the resolver level?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between schema stitching and federation?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you paginate a GraphQL query, and how does cursor-based pagination work here?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "observability-monitoring-logging",
+    "order": 39,
+    "number": "37",
+    "group": "ARCHITECTURE, INFRASTRUCTURE & DATA",
+    "title": "Observability, Monitoring & Logging",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What is structured logging, and why is it preferable to plain text logs in production?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What are log levels, and how do you decide what belongs at each?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between a metric, a log and a trace?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which would you reach for to answer why is this one request slow?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is distributed tracing, and why does it matter once you have more than one service?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How does the trace context get propagated across a service boundary?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What are SLIs, SLOs and error budgets, and how do teams use them to make decisions?",
+        "difficulty": "H",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you set up alerting so you are notified about real problems without being flooded by noise?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Should you alert on causes or on symptoms?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What have tools like Sentry or Datadog given you that logs alone did not?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you debug a production issue that you cannot reproduce locally?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "api-resilience-patterns",
+    "order": 40,
+    "number": "38",
+    "group": "ARCHITECTURE, INFRASTRUCTURE & DATA",
+    "title": "API Resilience Patterns",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What’s the difference between the token bucket and leaky bucket algorithms for rate limiting?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which one allows a burst, and when is that desirable?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is an idempotency key, and why do payment APIs rely on them?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "How long should the server remember one?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is a circuit breaker, and what problem does it solve?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What are the three states, and what moves it between them?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between a timeout and a circuit breaker?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How should a client handle retries against a flaky downstream service?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which requests are safe to retry automatically?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "Why does exponential backoff with jitter matter when retrying failed requests?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the thundering herd, and how does jitter break it up?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do you prevent a slow downstream service from cascading into an outage across your whole system?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is a bulkhead, and how does it contain the blast radius?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "slug": "pwa-service-workers",
+    "order": 41,
+    "number": "39",
+    "group": "PATTERNS & OFFLINE",
+    "title": "PWA / Service Workers",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What is a service worker, and how does its install/activate/fetch lifecycle work?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Why does a new service worker not take control immediately?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What’s the difference between cache-first, network-first and stale-while-revalidate strategies?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "Which would you use for the app shell, and which for API data?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What does the web app manifest file do?",
+        "difficulty": "E",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you make an app work offline, and what are the limits of that?",
+        "difficulty": "M",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens to writes made while offline?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "How do push notifications work on the web, and what role does the service worker play?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between the Cache API and IndexedDB, and when would you use each?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "design-patterns-solid",
+    "order": 42,
+    "number": "40",
+    "group": "PATTERNS & OFFLINE",
+    "title": "Design Patterns / SOLID",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "Name a few common design patterns (Singleton, Observer, Factory, Strategy) and give a JavaScript example of one.",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What does the Single Responsibility Principle mean in practice, and how do you spot a violation?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do the SOLID principles apply, or not, to a language like JavaScript without strict interfaces?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "What’s the difference between the Observer pattern and the Pub/Sub pattern?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "When is it better to compose behaviour with plain functions than to reach for a formal design pattern?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "Describe a time you saw a design pattern applied where it was not actually needed.",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      }
+    ]
+  },
+  {
+    "slug": "microservices-vs-monolith",
+    "order": 43,
+    "number": "41",
+    "group": "PATTERNS & OFFLINE",
+    "title": "Microservices vs Monolith",
+    "status": "questions-only",
+    "questions": [
+      {
+        "prompt": "What are the tradeoffs between a monolithic and a microservices architecture?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you decide where to draw service boundaries?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What happens when two services need to change together for every feature?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What is an API gateway, and what problems does it solve?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How do you handle a transaction that spans multiple services (the saga pattern)?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What does a compensating action look like, and when is it not possible?",
+            "body": []
+          }
+        ]
+      },
+      {
+        "prompt": "What operational costs come with microservices that do not show up in a monolith?",
+        "difficulty": "M",
+        "body": [],
+        "followups": []
+      },
+      {
+        "prompt": "How would you migrate a monolith to microservices incrementally, without a big bang rewrite?",
+        "difficulty": "H",
+        "body": [],
+        "followups": [
+          {
+            "prompt": "What is the strangler fig pattern?",
+            "body": []
+          }
+        ]
+      }
+    ]
+  }
+]

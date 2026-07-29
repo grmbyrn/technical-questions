@@ -1,0 +1,17 @@
+{
+  "name": "technical-questions",
+  "version": "1.0.0",
+  "description": "Frontend/backend interview prep — 532 questions across 44 sections",
+  "scripts": {
+    "extract": "node scripts/extract.js",
+    "verify": "node scripts/verify.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "js-yaml": "^5.2.2"
+  }
+}
