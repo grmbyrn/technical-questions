@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node scripts/build.js",
     "verify": "node scripts/verify.js",
-    "extract": "node scripts/extract.js  # one-time migration, kept for reference"
+    "start": "python3 -m http.server 8000",
+    "extract": "node scripts/extract.js"
   },
   "keywords": [],
   "author": "",

@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 /**
- * content/*.md -> index.html
+ * content/*.md -> index.html (shell) + manifest.json (nav metadata)
  *
- * index.html is generated output. Never edit it — edit the Markdown.
+ * No question or answer text is emitted into either file. The page fetches and
+ * renders content/*.md at runtime, so the Markdown is the only place any
+ * question, answer, follow-up or code sample exists.
  *
- * The nav, the progress bar and the prev/next pagers are all derived here from
- * the content, so adding or reordering a section is a Markdown-only change.
+ * manifest.json carries nav metadata only — slug, order, number, group, title,
+ * status, file — which is what the sidebar, progress bar and pagers need.
  */
 const fs = require("fs");
 const path = require("path");
@@ -13,125 +15,31 @@ const { loadSections } = require("./lib.js");
 
 const ROOT = path.join(__dirname, "..");
 
-const esc = (s) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-const tag = (d) => (d ? ` <span class="tag">(${d})</span>` : "");
-
-function renderCode(block, cls) {
-  const c = cls ? ` class="${cls}"` : ' class=""';
-  return `<pre${c}><code>${esc(block.text)}</code></pre>`;
+function buildManifest(sections) {
+  return sections.map((s) => ({
+    slug: s.slug,
+    order: s.order,
+    number: s.number,
+    group: s.group,
+    title: s.title,
+    status: s.status,
+    file: `content/${String(s.order).padStart(2, "0")}-${s.slug}.md`,
+    questions: s.questions.length, // a count, not the content
+  }));
 }
 
-function renderBody(body, { paraClass, codeClass }) {
-  return body
-    .map((b) =>
-      b.type === "p"
-        ? `<p class="${paraClass}">${esc(b.text)}</p>`
-        : renderCode(b, codeClass),
-    )
-    .join("\n");
-}
-
-function renderAnswered(section) {
-  return section.questions
-    .map((q) => {
-      const parts = [
-        `<h3>${esc(q.prompt)}${tag(q.difficulty)}</h3>`,
-        renderBody(q.body, { paraClass: "", codeClass: "" }),
-      ];
-      for (const f of q.followups) {
-        parts.push(
-          [
-            `<div class="follow">`,
-            `<h4>${esc(f.prompt)}</h4>`,
-            renderBody(f.body, { paraClass: "f", codeClass: "f" }),
-            `</div>`,
-          ]
-            .filter(Boolean)
-            .join("\n"),
-        );
-      }
-      return `<div class="qa">\n${parts.filter(Boolean).join("\n")}\n</div>`;
-    })
-    .join("\n");
-}
-
-function renderQuestionsOnly(section) {
-  const items = section.questions
-    .map((q) => {
-      const flist = q.followups.length
-        ? `\n<ul class="flist">\n` +
-          q.followups.map((f) => `<li>${esc(f.prompt)}</li>`).join("\n") +
-          `\n</ul>`
-        : "";
-      return `<li>${esc(q.prompt)}${tag(q.difficulty)}${flist}\n</li>`;
-    })
-    .join("\n");
-  return `<ul class="qlist">\n${items}\n</ul>`;
-}
-
-function renderPager(sections, i) {
-  const prev = sections[i - 1];
-  const next = sections[i + 1];
-  const left = prev
-    ? `<a class="pn" href="#s${prev.order}">&larr; ${esc(`${prev.number}. ${prev.title}`)}</a>`
-    : `<span class="pn ghost"></span>`;
-  const right = next
-    ? `<a class="pn" href="#s${next.order}">${esc(`${next.number}. ${next.title}`)} &rarr;</a>`
-    : `<span class="pn ghost"></span>`;
-  return `<div class="pager">${left}${right}</div>`;
-}
-
-function renderSection(sections, i) {
-  const s = sections[i];
-  const answered = s.status === "answered";
-  return [
-    `<section id="s${s.order}" class="section">`,
-    `<div class="eyebrow">${esc(s.group)}</div>`,
-    `<h2>${esc(`${s.number}. ${s.title}`)}</h2>`,
-    answered
-      ? `<div class="badge done">Answers written</div>`
-      : `<div class="badge todo">Questions only &mdash; answers not written yet</div>`,
-    answered ? renderAnswered(s) : renderQuestionsOnly(s),
-    renderPager(sections, i),
-    `</section>`,
-  ].join("\n");
-}
-
-function renderNav(sections) {
-  const out = [];
-  let group = null;
-  for (const s of sections) {
-    if (s.group !== group) {
-      group = s.group;
-      out.push(`<div class="navgroup">${esc(group)}</div>`);
-    }
-    const answered = s.status === "answered";
-    out.push(
-      `<a class="navlink${answered ? " answered" : ""}" href="#s${s.order}" ` +
-        `data-idx="${s.order}"><span class="dot${answered ? " on" : ""}"></span>` +
-        `${esc(`${s.number}. ${s.title}`)}</a>`,
-    );
-  }
-  return out.join("\n");
-}
-
-function build() {
-  const sections = loadSections();
-  const css = fs.readFileSync(path.join(ROOT, "src/styles.css"), "utf8");
-  const js = fs.readFileSync(path.join(ROOT, "src/app.js"), "utf8");
-
-  const done = sections.filter((s) => s.status === "answered").length;
-  const pct = ((done / sections.length) * 100).toFixed(1);
-
-  const html = `<!doctype html>
+function shell(css, js) {
+  return `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Interview Prep</title>
-    <!-- GENERATED by scripts/build.js from content/*.md — do not edit -->
+    <!--
+      GENERATED by scripts/build.js — do not edit.
+      This file deliberately contains no questions or answers; all content is
+      loaded at runtime from content/*.md.
+    -->
     <style>
 ${css.trimEnd()}
     </style>
@@ -154,16 +62,12 @@ ${css.trimEnd()}
       <aside id="sidebar">
         <div class="brand">Interview Prep</div>
         <div class="progress">
-          <div class="pbar"><div class="pfill" style="width: ${pct}%"></div></div>
-          <div class="pnum">${done} of ${sections.length} sections answered</div>
+          <div class="pbar"><div class="pfill" id="pfill"></div></div>
+          <div class="pnum" id="pnum">&nbsp;</div>
         </div>
-        <nav id="nav">
-${renderNav(sections)}
-        </nav>
+        <nav id="nav"></nav>
       </aside>
-      <main>
-${sections.map((_, i) => renderSection(sections, i)).join("\n")}
-      </main>
+      <main id="main"></main>
     </div>
     <script>
 ${js.trimEnd()}
@@ -171,20 +75,28 @@ ${js.trimEnd()}
   </body>
 </html>
 `;
+}
 
-  fs.writeFileSync(path.join(ROOT, "index.html"), html, "utf8");
+function build() {
+  const sections = loadSections();
+  const css = fs.readFileSync(path.join(ROOT, "src/styles.css"), "utf8");
+  const js = fs.readFileSync(path.join(ROOT, "src/app.js"), "utf8");
+
+  const manifest = buildManifest(sections);
   fs.writeFileSync(
-    path.join(ROOT, "content.json"),
-    JSON.stringify(sections, null, 2),
+    path.join(ROOT, "manifest.json"),
+    JSON.stringify(manifest, null, 2),
     "utf8",
   );
+  fs.writeFileSync(path.join(ROOT, "index.html"), shell(css, js), "utf8");
 
-  const q = sections.reduce((n, s) => n + s.questions.length, 0);
+  const done = manifest.filter((s) => s.status === "answered").length;
+  const bytes = fs.statSync(path.join(ROOT, "index.html")).size;
   console.log(
-    `built index.html — ${sections.length} sections, ${q} questions, ` +
-      `${done} answered (${pct}%)`,
+    `built index.html (${(bytes / 1024).toFixed(1)} KB shell, no content) + ` +
+      `manifest.json — ${manifest.length} sections, ${done} answered`,
   );
 }
 
 if (require.main === module) build();
-module.exports = { build };
+module.exports = { build, buildManifest };
