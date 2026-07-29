@@ -147,13 +147,9 @@ h2 {
   color: #8a4b12;
 }
 .section {
-  display: none;
   padding-bottom: 56px;
   margin-bottom: 24px;
   scroll-margin-top: 24px;
-}
-.section.current {
-  display: block;
 }
 .qa {
   margin-bottom: 30px;
@@ -199,12 +195,13 @@ h4 {
   margin: 0 0 7px;
   line-height: 1.4;
 }
-p.f {
+/* follow-up prose is styled by nesting — Nuxt Content emits plain <p>/<pre> */
+.follow p {
   color: var(--muted);
   font-size: 14px;
   margin-bottom: 9px;
 }
-pre.f {
+.follow pre {
   margin-left: 0;
 }
 .qlist {
