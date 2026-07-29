@@ -79,10 +79,22 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
 
     <div class="layout">
       <aside>
-        <div class="brand">Interview Prep</div>
-        <div class="progress">
-          <div class="pbar"><div class="pfill" :style="{ width: `${pct}%` }" /></div>
-          <div class="pnum">{{ answered }} of {{ total }} sections answered</div>
+        <!-- sticky on mobile, plain header on desktop -->
+        <div class="drawer-head">
+          <div>
+            <div class="brand">Interview Prep</div>
+            <div class="progress">
+              <div class="pbar">
+                <div class="pfill" :style="{ width: `${pct}%` }" />
+              </div>
+              <div class="pnum">
+                {{ answered }} of {{ total }} sections answered
+              </div>
+            </div>
+          </div>
+          <button class="closebtn" aria-label="Close topics" @click="navOpen = false">
+            &times;
+          </button>
         </div>
         <nav>
           <template v-for="(item, i) in navItems" :key="i">

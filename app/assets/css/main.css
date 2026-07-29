@@ -11,6 +11,25 @@
     -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
     Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type scale. Every text rule reads these, so the mobile sizes below are a
+     single override rather than a fight with selector specificity. */
+  --fs-h2: 28px;
+  --fs-h3: 16.5px;
+  --fs-h4: 14px;
+  --fs-body: 14.6px;
+  --fs-follow: 14px;
+  --fs-flist: 13.4px;
+  --fs-code: 12.6px;
+  --fs-tag: 11px;
+  --fs-eyebrow: 10px;
+  --fs-pager: 12.5px;
+  --fs-nav: 12.5px;
+  --fs-navgroup: 9.5px;
+  --fs-brand: 13px;
+  --fs-badge: 10px;
+  --fs-topbar: 13.5px;
+  --nav-pad-y: 5px;
 }
 * {
   box-sizing: border-box;
@@ -44,7 +63,7 @@ aside {
 }
 .brand {
   padding: 0 20px 12px;
-  font-size: 13px;
+  font-size: var(--fs-brand);
   font-weight: 700;
   letter-spacing: -0.01em;
 }
@@ -64,13 +83,13 @@ aside {
 }
 .pnum {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   color: var(--muted);
   margin-top: 6px;
 }
 .navgroup {
   font-family: var(--mono);
-  font-size: 9.5px;
+  font-size: var(--fs-navgroup);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--muted);
@@ -80,8 +99,8 @@ aside {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 20px;
-  font-size: 12.5px;
+  padding: var(--nav-pad-y) 20px;
+  font-size: var(--fs-nav);
   color: var(--muted);
   text-decoration: none;
   line-height: 1.35;
@@ -114,17 +133,20 @@ aside {
 main {
   padding: 44px 56px 120px;
   max-width: 820px;
+  /* a grid item defaults to min-width:auto, so wide content (a long code line)
+     would stretch the column past the viewport and drag every line with it */
+  min-width: 0;
 }
 .eyebrow {
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-eyebrow);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 6px;
 }
 h2 {
-  font-size: 28px;
+  font-size: var(--fs-h2);
   line-height: 1.15;
   letter-spacing: -0.025em;
   margin: 0 0 12px;
@@ -132,7 +154,7 @@ h2 {
 .badge {
   display: inline-block;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: var(--fs-badge);
   letter-spacing: 0.06em;
   padding: 5px 9px;
   border-radius: 6px;
@@ -155,19 +177,19 @@ h2 {
   margin-bottom: 30px;
 }
 h3 {
-  font-size: 16.5px;
+  font-size: var(--fs-h3);
   line-height: 1.35;
   letter-spacing: -0.012em;
   margin: 0 0 9px;
 }
 .tag {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: var(--fs-tag);
   color: #8593a3;
   font-weight: 400;
 }
 p {
-  font-size: 14.6px;
+  font-size: var(--fs-body);
   line-height: 1.62;
   margin: 0 0 11px;
 }
@@ -181,7 +203,7 @@ pre {
 }
 code {
   font-family: var(--mono);
-  font-size: 12.6px;
+  font-size: var(--fs-code);
   line-height: 1.55;
 }
 .follow {
@@ -190,7 +212,7 @@ code {
   margin: 14px 0 14px 2px;
 }
 h4 {
-  font-size: 14px;
+  font-size: var(--fs-h4);
   color: var(--accent);
   margin: 0 0 7px;
   line-height: 1.4;
@@ -198,7 +220,7 @@ h4 {
 /* follow-up prose is styled by nesting — Nuxt Content emits plain <p>/<pre> */
 .follow p {
   color: var(--muted);
-  font-size: 14px;
+  font-size: var(--fs-follow);
   margin-bottom: 9px;
 }
 .follow pre {
@@ -209,7 +231,7 @@ h4 {
   margin: 0;
 }
 .qlist > li {
-  font-size: 14.6px;
+  font-size: var(--fs-body);
   line-height: 1.5;
   margin-bottom: 9px;
 }
@@ -219,7 +241,7 @@ h4 {
   list-style: none;
 }
 .flist li {
-  font-size: 13.4px;
+  font-size: var(--fs-flist);
   color: var(--muted);
   line-height: 1.45;
   margin-bottom: 3px;
@@ -238,7 +260,7 @@ h4 {
   border-top: 1px solid var(--rule);
 }
 .pn {
-  font-size: 12.5px;
+  font-size: var(--fs-pager);
   color: var(--muted);
   text-decoration: none;
   max-width: 46%;
@@ -277,6 +299,10 @@ h4 {
   color: var(--ink);
   cursor: pointer;
 }
+/* drawer close button — mobile only, styled in the media query below */
+.closebtn {
+  display: none;
+}
 .bars,
 .bars::before,
 .bars::after {
@@ -302,7 +328,7 @@ h4 {
   top: 5px;
 }
 .topbar-title {
-  font-size: 13.5px;
+  font-size: var(--fs-topbar);
   font-weight: 600;
   letter-spacing: -0.01em;
   overflow: hidden;
@@ -335,27 +361,62 @@ h4 {
   }
 }
 @media (max-width: 900px) {
+  /* One override of the scale, rather than per-element rules that lose to
+     more specific selectors like `.follow p` and `.flist li`. */
+  :root {
+    --fs-h2: 25px;
+    --fs-h3: 18px;
+    --fs-h4: 16px;
+    --fs-body: 17px;
+    --fs-follow: 16.5px;
+    --fs-flist: 16px;
+    --fs-code: 13.5px;
+    --fs-tag: 13px;
+    --fs-eyebrow: 11px;
+    --fs-pager: 15px;
+    --fs-nav: 15.5px;
+    --fs-navgroup: 11px;
+    --fs-brand: 16px;
+    --fs-badge: 11.5px;
+    --fs-topbar: 15px;
+    --nav-pad-y: 12px;
+  }
+
   .topbar {
     display: flex;
+    height: auto;
+    min-height: 52px;
+    gap: 10px;
+    padding: 6px 10px;
+    /* clear the notch / status bar */
+    padding-top: max(6px, env(safe-area-inset-top));
+  }
+  .menubtn {
+    width: 44px;
+    height: 44px;
   }
   .layout {
     grid-template-columns: 1fr;
   }
-  /* sidebar becomes an off-canvas drawer */
+
+  /* ---- sidebar becomes an off-canvas drawer ---- */
   aside {
     position: fixed;
     z-index: 50;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 82vw;
-    max-width: 320px;
+    width: min(88vw, 360px);
     height: auto;
-    padding-top: 16px;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    border-right: 0;
     transform: translateX(-100%);
-    transition: transform 0.22s ease;
-    box-shadow: 0 0 40px rgba(12, 20, 30, 0.18);
+    transition: transform 0.24s cubic-bezier(0.32, 0.72, 0, 1);
+    box-shadow: 0 0 48px rgba(12, 20, 30, 0.24);
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
   body.navopen aside {
     transform: translateX(0);
@@ -363,54 +424,120 @@ h4 {
   body.navopen {
     overflow: hidden;
   }
-  .navlink {
-    padding: 10px 20px;
-    font-size: 14px;
+
+  /* drawer header stays put while the 44 links scroll under it */
+  .drawer-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-shrink: 0;
+    padding: max(14px, env(safe-area-inset-top)) 16px 12px 20px;
+    border-bottom: 1px solid var(--rule);
+    background: #fff;
   }
+  .drawer-head .brand,
+  .drawer-head .progress {
+    padding: 0;
+  }
+  .drawer-head > div {
+    flex: 1;
+    min-width: 0;
+  }
+  .brand {
+    margin-bottom: 10px;
+  }
+  .closebtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    margin: -4px -4px 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .closebtn:active {
+    background: #eef2f7;
+  }
+
+  nav {
+    flex: 1;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: max(24px, env(safe-area-inset-bottom));
+  }
+  .navlink {
+    min-height: 46px; /* comfortable tap target */
+    gap: 10px;
+    line-height: 1.3;
+    border-bottom: 1px solid #f1f4f8;
+  }
+  .navlink.active {
+    box-shadow: inset 3px 0 0 var(--accent);
+  }
+  .dot {
+    width: 8px;
+    height: 8px;
+  }
+  .navgroup {
+    padding: 18px 20px 6px;
+    background: #fafbfd;
+  }
+
+  /* ---- content ---- */
   main {
-    padding: 26px 20px 80px;
+    padding: 24px 20px 80px;
     max-width: none;
   }
-  h2 {
-    font-size: 23px;
-  }
   p,
-  .qlist > li {
-    font-size: 15.4px;
-  }
-  h3 {
-    font-size: 16px;
-  }
-  code {
-    font-size: 12px;
+  .qlist > li,
+  .flist li,
+  .follow p {
+    line-height: 1.6;
   }
   .follow {
-    padding-left: 12px;
+    padding-left: 14px;
+    margin-left: 0;
   }
   .qlist {
-    padding-left: 18px;
+    padding-left: 20px;
+  }
+  .flist li {
+    font-style: normal; /* italics at small sizes read poorly on phones */
+  }
+  pre {
+    padding: 12px;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  aside {
-    transition: none;
-  }
-}
+
 @media (max-width: 480px) {
-  main {
-    padding: 22px 16px 72px;
+  :root {
+    --fs-h2: 23px;
   }
-  h2 {
-    font-size: 21px;
+  main {
+    padding: 20px 16px 72px;
   }
   .pager {
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
   .pn {
     max-width: none;
   }
   .pn.ghost {
     display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  aside {
+    transition: none;
   }
 }
