@@ -1,12 +1,5 @@
 <script setup lang="ts">
-// metadata only — pulling bodies here would serialise every section into
-// every page's payload
-const { data: sections } = await useAsyncData("sections", () =>
-  queryCollection("sections")
-    .order("order", "ASC")
-    .select("slug", "order", "number", "group", "title", "status")
-    .all(),
-);
+const { data: sections } = await useSections();
 
 const route = useRoute();
 const router = useRouter();

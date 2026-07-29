@@ -13,12 +13,7 @@ if (!doc.value) {
 }
 
 // prev/next are derived from the ordered list, not hardcoded per section
-const { data: sections } = await useAsyncData("sections", () =>
-  queryCollection("sections")
-    .order("order", "ASC")
-    .select("slug", "order", "number", "group", "title", "status")
-    .all(),
-);
+const { data: sections } = await useSections();
 
 const index = computed(() =>
   (sections.value ?? []).findIndex((s) => s.slug === slug.value),
