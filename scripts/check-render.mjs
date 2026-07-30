@@ -40,10 +40,10 @@ for (const file of files) {
 
   let actual;
   if (status === "answered") {
-    // questions are <h3>, follow-ups are <h4>
+    // outline is h1 section title > h2 question > h3 follow-up
     actual = {
-      questions: count(main, /<h3[ >]/g),
-      followups: count(main, /<h4[ >]/g),
+      questions: count(main, /<h2[ >]/g),
+      followups: count(main, /<h3[ >]/g),
       code: count(main, /<pre[ >]/g),
     };
   } else {

@@ -30,6 +30,9 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
+      // lang matters twice over: Reader detection, and which voice the
+      // speech synthesiser picks when reading the page aloud
+      htmlAttrs: { lang: "en" },
       title: "Interview Prep",
       meta: [
         { charset: "utf-8" },

@@ -21,13 +21,24 @@ const index = computed(() =>
 const prev = computed(() => (sections.value ?? [])[index.value - 1]);
 const next = computed(() => (sections.value ?? [])[index.value + 1]);
 
-useHead({ title: () => `${doc.value?.number}. ${doc.value?.title}` });
+const description = computed(() =>
+  doc.value
+    ? `Interview questions on ${doc.value.title} (${doc.value.group.toLowerCase()}).`
+    : "",
+);
+
+useHead({
+  title: () => `${doc.value?.number}. ${doc.value?.title}`,
+  meta: [{ name: "description", content: description }],
+});
 </script>
 
 <template>
-  <section v-if="doc" class="section">
+  <!-- <article> + a single <h1>: Safari Reader (and so Listen to Page) needs
+       an article-shaped document to offer itself at all -->
+  <article v-if="doc" class="section">
     <div class="eyebrow">{{ doc.group }}</div>
-    <h2>{{ doc.number }}. {{ doc.title }}</h2>
+    <h1>{{ doc.number }}. {{ doc.title }}</h1>
     <div class="badge" :class="doc.status === 'answered' ? 'done' : 'todo'">
       {{
         doc.status === "answered"
@@ -48,5 +59,5 @@ useHead({ title: () => `${doc.value?.number}. ${doc.value?.title}` });
       </NuxtLink>
       <span v-else class="pn ghost" />
     </div>
-  </section>
+  </article>
 </template>

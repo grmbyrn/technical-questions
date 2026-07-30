@@ -13,7 +13,9 @@
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* Type scale. Every text rule reads these, so the mobile sizes below are a
-     single override rather than a fight with selector specificity. */
+     single override rather than a fight with selector specificity.
+     Names track the visual scale, not the tag: --fs-h2 styles the section
+     <h1>, --fs-h3 the question <h2>, --fs-h4 the follow-up <h3>. */
   --fs-h2: 28px;
   --fs-h3: 16.5px;
   --fs-h4: 14px;
@@ -145,7 +147,7 @@ main {
   color: var(--accent);
   margin-bottom: 6px;
 }
-h2 {
+h1 {
   font-size: var(--fs-h2);
   line-height: 1.15;
   letter-spacing: -0.025em;
@@ -176,7 +178,7 @@ h2 {
 .qa {
   margin-bottom: 30px;
 }
-h3 {
+h2 {
   font-size: var(--fs-h3);
   line-height: 1.35;
   letter-spacing: -0.012em;
@@ -211,7 +213,7 @@ code {
   padding-left: 16px;
   margin: 14px 0 14px 2px;
 }
-h4 {
+h3 {
   font-size: var(--fs-h4);
   color: var(--accent);
   margin: 0 0 7px;

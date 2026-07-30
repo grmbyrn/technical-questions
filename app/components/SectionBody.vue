@@ -60,13 +60,13 @@ const asDoc = (value: Node[]) => ({ body: { type: "minimal", value } });
   <!-- sections with answers written -->
   <template v-if="status === 'answered'">
     <div v-for="(q, i) in questions" :key="i" class="qa">
-      <h3>
+      <h2>
         {{ q.prompt }}
         <span v-if="q.difficulty" class="tag">({{ q.difficulty }})</span>
-      </h3>
+      </h2>
       <ContentRenderer v-if="q.body.length" :value="asDoc(q.body)" />
       <div v-for="(f, j) in q.followups" :key="j" class="follow">
-        <h4>{{ f.prompt }}</h4>
+        <h3>{{ f.prompt }}</h3>
         <ContentRenderer v-if="f.body.length" :value="asDoc(f.body)" />
       </div>
     </div>
