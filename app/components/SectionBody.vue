@@ -1,64 +1,24 @@
 <script setup lang="ts">
+import type { Node } from "~/composables/useQuestions";
+
 /**
- * Nuxt Content gives us a flat list of nodes. The design needs them grouped:
- * an h2 starts a question, an h3 starts a follow-up inside it, and everything
- * else belongs to whichever of the two is currently open.
- *
- * Difficulty lives in the heading text as a trailing (E), (M) or (H).
+ * Which layout a section gets is decided by its content, not by frontmatter:
+ * as soon as any question has an answer written under it, the whole section
+ * switches to the heading layout that can render prose and code. Questions
+ * still waiting on an answer just show up as a heading with nothing below.
  */
-type Node = [string, Record<string, unknown>, ...unknown[]];
+const props = defineProps<{ body?: { value?: Node[] } }>();
 
-const props = defineProps<{
-  body?: { value?: Node[] };
-  status: "answered" | "questions-only";
-}>();
-
-function textOf(node: unknown): string {
-  if (typeof node === "string") return node;
-  if (Array.isArray(node)) return node.slice(2).map(textOf).join("");
-  return "";
-}
-
-const questions = computed(() => {
-  const out: Array<{
-    prompt: string;
-    difficulty: string | null;
-    body: Node[];
-    followups: Array<{ prompt: string; body: Node[] }>;
-  }> = [];
-  let q: (typeof out)[number] | null = null;
-  let f: { prompt: string; body: Node[] } | null = null;
-
-  for (const node of props.body?.value ?? []) {
-    const tag = node[0];
-    if (tag === "h2") {
-      const raw = textOf(node).trim();
-      const m = raw.match(/^(.*?)\s*\(([EMH])\)$/);
-      q = {
-        prompt: m ? m[1]! : raw,
-        difficulty: m ? m[2]! : null,
-        body: [],
-        followups: [],
-      };
-      f = null;
-      out.push(q);
-    } else if (tag === "h3" && q) {
-      f = { prompt: textOf(node).trim(), body: [] };
-      q.followups.push(f);
-    } else if (q) {
-      (f ? f.body : q.body).push(node);
-    }
-  }
-  return out;
-});
+const questions = computed(() => parseQuestions(props.body));
+const hasAnswers = computed(() => questions.value.some(isAnswered));
 
 /** ContentRenderer wants a document; hand it a slice of one. */
 const asDoc = (value: Node[]) => ({ body: { type: "minimal", value } });
 </script>
 
 <template>
-  <!-- sections with answers written -->
-  <template v-if="status === 'answered'">
+  <!-- sections with at least one answer written -->
+  <template v-if="hasAnswers">
     <div v-for="(q, i) in questions" :key="i" class="qa">
       <h2>
         {{ q.prompt }}

@@ -174,6 +174,37 @@ A # field is privacy enforced by the language rather than by scope. Touching one
 
 The trade-off is memory. Closure privacy gives every instance its own copy of every method, while class methods live once on the prototype. For a handful of objects that is irrelevant; for thousands it is not. I would use # in a class-based codebase and closures in a functional one.
 
+## How would you write a memoize function using a closure? (M)
+
+Keep the cache in the closure and return a wrapper that checks it before calling through. The cache is private to the returned function, which is the appeal — nothing else can read it, clear it or corrupt it.
+
+```js
+function memoize(fn) {
+  const cache = new Map();
+  return function (...args) {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key);
+    const result = fn.apply(this, args);
+    cache.set(key, result);
+    return result;
+  };
+}
+```
+
+Two details worth saying out loud. It is only safe for pure functions — memoize something that reads a database or the clock and you have cached a stale answer for the life of the page. And it checks has before get, so a cached undefined or 0 is not recomputed every single time, which a truthiness check would do.
+
+### What are the limits of building a cache key from the arguments?
+
+JSON.stringify only handles serialisable arguments and it is order-sensitive, so { a: 1, b: 2 } and { b: 2, a: 1 } produce different keys for what is the same input. Functions and undefined disappear, Map and Set come out empty, and a circular structure throws.
+
+For a single object argument, a WeakMap keyed on identity is both cheaper and correct. For the general case you either accept the limitation or let the caller pass a key resolver, which is what lodash's memoize does — defaulting, notably, to just the first argument.
+
+### When does a memo cache turn into a memory leak?
+
+As soon as it is unbounded and long-lived. A memoized function at module scope holds every argument set and every result for the life of the page, so memoizing something called with user input grows without limit, and memoizing on DOM nodes keeps every node it has ever seen — the same shape of problem as the listener above.
+
+The fixes are a size cap with an eviction policy, a WeakMap when the key is an object you do not want to pin, or scoping the memo to the work that needs it rather than to the module.
+
 ## What are the potential pitfalls of using closures? (M)
 
 Retention is the main one. A closure keeps its scope alive, so if the closure itself is long-lived it can hold on to far more memory than you intended.

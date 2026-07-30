@@ -21,6 +21,17 @@ const index = computed(() =>
 const prev = computed(() => (sections.value ?? [])[index.value - 1]);
 const next = computed(() => (sections.value ?? [])[index.value + 1]);
 
+// the badge counts the answers actually present in the Markdown, so it stays
+// honest while a section is half written — `status` only drives the sidebar
+const progress = computed(() => answerProgress(parseQuestions(doc.value?.body)));
+
+const badge = computed(() => {
+  const { done, total } = progress.value;
+  if (done === 0) return "Questions only — answers not written yet";
+  if (done < total) return `${done} of ${total} answered`;
+  return "Answers written";
+});
+
 const description = computed(() =>
   doc.value
     ? `Interview questions on ${doc.value.title} (${doc.value.group.toLowerCase()}).`
@@ -39,15 +50,11 @@ useHead({
   <article v-if="doc" class="section">
     <div class="eyebrow">{{ doc.group }}</div>
     <h1>{{ doc.number }}. {{ doc.title }}</h1>
-    <div class="badge" :class="doc.status === 'answered' ? 'done' : 'todo'">
-      {{
-        doc.status === "answered"
-          ? "Answers written"
-          : "Questions only — answers not written yet"
-      }}
+    <div class="badge" :class="progress.done === progress.total ? 'done' : 'todo'">
+      {{ badge }}
     </div>
 
-    <SectionBody :body="doc.body" :status="doc.status" />
+    <SectionBody :body="doc.body" />
 
     <div class="pager">
       <NuxtLink v-if="prev" class="pn" :to="`/${prev.slug}`">

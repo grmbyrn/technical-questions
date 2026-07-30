@@ -21,7 +21,6 @@ for (const file of files) {
   const src = fs.readFileSync(path.join(DIR, file), "utf8");
   const front = src.match(/^---\n([\s\S]*?)\n---/)[1];
   const slug = front.match(/^slug: (.*)$/m)[1].trim();
-  const status = front.match(/^status: (.*)$/m)[1].trim();
 
   const expected = {
     questions: count(src, /^## /gm),
@@ -38,8 +37,12 @@ for (const file of files) {
   const html = await res.text();
   const main = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
 
+  // a section picks its layout from its own content — the moment one answer is
+  // written it switches to headings — so read back which one it actually used
+  const layout = main.includes('<ul class="qlist">') ? "list" : "headings";
+
   let actual;
-  if (status === "answered") {
+  if (layout === "headings") {
     // outline is h1 section title > h2 question > h3 follow-up
     actual = {
       questions: count(main, /<h2[ >]/g),
@@ -58,13 +61,25 @@ for (const file of files) {
     };
   }
 
+  // the list layout has nowhere to put code, so a section that grew a code
+  // block but still renders as a list has silently dropped it
+  if (layout === "list" && expected.code > 0) {
+    failures++;
+    console.error(
+      `✗ ${slug}: ${expected.code} code block(s) in the Markdown are not rendered ` +
+        `— the page is still using the question-list layout`,
+    );
+    for (const k of Object.keys(totals)) totals[k] += expected[k];
+    continue;
+  }
+
   const bad = ["questions", "followups", "code"].filter(
     (k) => actual[k] !== expected[k],
   );
   if (bad.length) {
     failures++;
     console.error(
-      `✗ ${slug} (${status}): ` +
+      `✗ ${slug} (${layout}): ` +
         bad.map((k) => `${k} ${actual[k]} != ${expected[k]}`).join(", "),
     );
   }

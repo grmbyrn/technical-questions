@@ -60,6 +60,33 @@ It is specified that way — typeof was deliberately given an escape hatch so fe
 
 Worth adding that this does not save you inside the temporal dead zone: typeof on a let or const before its declaration still throws.
 
+## What do optional chaining and nullish coalescing do, and how does ?? differ from ||? (E)
+
+?. reads a property, calls a method or indexes only if the thing on its left is not null or undefined, short-circuiting to undefined instead of throwing. ?? supplies a fallback, but only when the left side is null or undefined.
+
+That is exactly where it differs from ||. The || operator falls back on any falsy value, so 0, an empty string and false get replaced by the default too — a real bug whenever zero or an empty string is a legitimate value.
+
+```js
+const count = settings.count ?? 10; // 0 stays 0
+const count = settings.count || 10; // 0 becomes 10
+
+user?.profile?.name; // undefined, not a TypeError
+user.getName?.(); // only called if it exists
+items?.[0];
+```
+
+### Which values does || treat as missing that ?? does not?
+
+The falsy values that are not nullish: 0, -0, the empty string, NaN, false and 0n. Those are the cases where the two disagree, and they tend to be the ones that matter — a quantity of zero, an empty search box, a deliberate false flag.
+
+?? narrows the question from "is this falsy" to "is this absent", which is nearly always what the code meant. The language will not let you mix ?? with && or || without parentheses, for the same reason — the precedence would be ambiguous to a reader.
+
+### What does ?. protect you from, and what does it not?
+
+Only null or undefined at the link where you wrote it. a?.b.c still throws if a exists and b is undefined, because the guard applies to that one step and not to the rest of the chain.
+
+It also will not help with an undeclared variable — that is a ReferenceError before any of this runs. And it is not a licence to sprinkle question marks everywhere: long chains of them usually mean you do not know the shape of your data, which is better fixed where the data enters the app.
+
 ## What are the various data types in JavaScript? (E)
 
 There are seven primitives — string, number, boolean, null, undefined, symbol and bigint — and then object, which covers everything else: plain objects, arrays, functions, dates, maps, sets, regexes.
@@ -114,6 +141,27 @@ So the classic gotcha is really a parsing quirk, not a coercion one. Wrapping it
 ### How does the + operator decide between concatenation and addition?
 
 Both operands go through ToPrimitive first. If either result is a string, it concatenates. Otherwise it converts both to numbers and adds. That single rule accounts for most surprising + results.
+
+## Why does 0.1 + 0.2 not equal 0.3, and how do you compare numbers safely? (M)
+
+Because JavaScript numbers are IEEE 754 doubles — binary floating point. A tenth cannot be represented exactly in binary any more than a third can in decimal, so 0.1 and 0.2 are stored slightly off and the error survives the addition. You get 0.30000000000000004.
+
+For comparison, check that the difference is smaller than a tolerance rather than testing equality. For money, do not use floats at all: work in integer minor units, or a decimal library, and format only for display.
+
+```js
+0.1 + 0.2 === 0.3; // false
+Math.abs(0.1 + 0.2 - 0.3) < Number.EPSILON; // true
+
+19.99 * 100; // 1998.9999999999998 — round before you trust it
+```
+
+The related limit is integer size. Integers are exact up to Number.MAX_SAFE_INTEGER, which is 2^53 − 1; past that, ordinary arithmetic silently loses precision and you need BigInt. It is why an API that sends 64-bit ids should send them as strings.
+
+### What is NaN, and why is Number.isNaN safer than isNaN?
+
+NaN is the numeric result of an operation with no meaningful number to give — parsing something that is not a number, 0/0, the square root of a negative. It is the only value in the language that is not equal to itself, which is how people tested for it before there was a helper.
+
+The global isNaN coerces its argument first, so isNaN("hello") is true even though a string is not NaN. Number.isNaN does no coercion and answers the question you actually asked. Object.is(x, NaN) works too, as does x !== x.
 
 ## What’s the difference between mutable and immutable objects? (M)
 
@@ -229,6 +277,35 @@ for...in enumerates enumerable string keys, including inherited ones from the pr
 
 It gives you keys as strings rather than numbers, it will pick up any extra properties added to the array or its prototype, and the order is not guaranteed the way array iteration order is. for...of or a normal loop avoids all three.
 
+## When would you use a Map or a Set instead of an object or an array? (M)
+
+A Map when you need a real dictionary: keys of any type, a size property, guaranteed insertion order, and cheap adds and deletes. A plain object is fine for a fixed record with known keys, but it inherits from Object.prototype, so a key like toString or constructor collides with something that is already there.
+
+A Set when you care about uniqueness or membership. Deduping is one line, and has is a hash lookup rather than the linear scan that includes does over an array.
+
+```js
+const seen = new Set(items); // dedupe
+seen.has(x); // roughly O(1), not a scan
+
+const cache = new Map();
+cache.set(domNode, metadata); // an object as a key
+cache.size; // no Object.keys() dance
+```
+
+The tradeoff is that neither survives JSON.stringify and neither has literal syntax, so at an API boundary you convert — Object.fromEntries(map) or [...set].
+
+### What can a Map key be that an object key cannot?
+
+Anything at all. Object keys are coerced to strings, so obj[1] and obj["1"] are the same slot, and using an object as a key stringifies it to "[object Object]" — every object you use collides on that one entry.
+
+A Map compares keys by identity, so a DOM node, a function or an object each works as its own distinct key. That is what you want when attaching data to something you do not want to modify.
+
+### What are WeakMap and WeakSet for?
+
+Associating data with an object without keeping that object alive. The keys must be objects and are held weakly, so once nothing else references a key, the entry can be collected.
+
+That makes them right for caches and for private data keyed on a node or an instance — the entry disappears when the thing does, instead of pinning it in memory the way a plain Map keyed on DOM nodes would. The price is that they are not iterable and have no size: you cannot enumerate them, precisely because entries may vanish between one line and the next.
+
 ## What’s the difference between .forEach() and .map(), and when would you use each? (E)
 
 map returns a new array containing whatever the callback returned, the same length as the original. forEach returns undefined and exists purely for side effects.
@@ -244,6 +321,23 @@ If I need to stop early I use for...of with break, or some, every, find or findI
 ### What do reduce, filter, some and every add on top of these?
 
 filter selects a subset, reduce folds a list down to a single value of any shape — a number, an object, a grouped map. some and every return booleans and stop as soon as the answer is known. reduce is the one to reach for carefully; if a plain loop reads better, use the loop.
+
+## Why does [10, 9, 1].sort() give the wrong order? (E)
+
+Because the default sort converts every element to a string and compares UTF-16 code units, so "10" comes before "9" the way it would in a dictionary. The default is only ever right by accident for numbers.
+
+Pass a comparator. It returns a negative number, zero, or a positive number to say whether a goes before b, and for numbers that is simply a - b.
+
+```js
+[10, 9, 1].sort(); // [1, 10, 9]
+[10, 9, 1].sort((a, b) => a - b); // [1, 9, 10]
+```
+
+### What else about sort catches people out?
+
+It mutates the array in place and returns that same array, so const sorted = arr.sort() leaves you two references to one reordered array — which is a bug when arr came from props or state. toSorted() returns a copy, or sort a spread of it.
+
+Two smaller ones worth knowing: sort has been stable since ES2019, so equal elements keep their relative order, which is what makes sorting by one key and then another work. And undefined values are always moved to the end without ever being passed to your comparator.
 
 ## How would you make duplicate([1,2,3,4,5]) return [1,2,3,4,5,1,2,3,4,5]? (E)
 
