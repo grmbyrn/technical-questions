@@ -4,7 +4,7 @@ order: 4
 number: "5"
 group: CORE JAVASCRIPT
 title: JavaScript — Async & the Event Loop
-status: questions-only
+status: answered
 ---
 
 ## What is the event loop, and what’s the difference between the call stack and the task queue? (H)

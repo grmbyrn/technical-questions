@@ -4,7 +4,7 @@ order: 5
 number: "6"
 group: CORE JAVASCRIPT
 title: JavaScript — Modules & Tooling
-status: questions-only
+status: answered
 ---
 
 ## What are the differences between CommonJS modules and ES modules? (H)
