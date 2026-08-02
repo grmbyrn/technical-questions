@@ -1,7 +1,7 @@
 ---
 slug: behavioural
 order: 0
-number: '1'
+number: "1"
 group: BEHAVIOURAL & SCREENING
 title: Behavioural & Screening
 status: questions-only
@@ -9,7 +9,17 @@ status: questions-only
 
 ## Tell me about yourself. (E)
 
+I'm a fullstack developer based here in Barcelona. I mainly work with React and Next.js with TypeScript on the front, Node and Express behind it. Most of my experience has been in small teams where I have owned feature from first commit through to production support.
+A lot of that time was at Nautilus Cyberneering, where I led a migration to a modular frontend architecture and got median page load down about 40%, and built out the design system and test suite the team worked in day to day. After that I moved to Permisso where I worked on an identity-verification product. It was Node services on AWS handling around ten thousand verifications a month. The thing I'm proudest of there is finding out why legitimate IDs were getting rejected. The flow demanded a front and a back image, which is right for many types of ID such as a driving licence but wrong for a passport. I made the requirement conditional on document type, which recovered about 90% of those rejections without weakening the checks on licences.
+Since February I've been freelancing, which has been good for the client-facing side, but I miss having one product to go deep on.
+The other thing worth mentioning is that I've gone fairly deep into AI-assisted development. Claude Code, spec-driven development, reviewing and validating what comes out of it before it ships, which is part of why this role caught my eye.
+
 ### What are you looking for in your next role?
+
+Three things, mainly. The first one is one product to work on for long enough to see my own decisions play out. A lot of what I've done recently has been shorter engagements, and what I've missed is being somewhere long enough to own something properly and then live with how I built it.
+Second, a small team where I'm close to the problem itself, not being handed tickets, but being part of the conversation about what we're building and why.
+Third, somewhere that takes AI seriously in how the team actually works, not just as a feature in the product. That's where a lot of my own energy has gone this year.
+And practically, I live in Barcelona and I want to be in a room with a team rather than working alone, which is what attracts me to something on site like at Pillar.
 
 ### Why are you leaving your current job?
 
