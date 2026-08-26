@@ -554,6 +554,31 @@ h3 {
 .dot.flash {
   background: var(--accent);
 }
+.modes {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  margin: 0 0 16px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--codebg);
+}
+.modebtn {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--ui);
+  font-size: var(--fs-pager);
+  cursor: pointer;
+}
+.modebtn.on {
+  background: #fff;
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(12, 20, 30, 0.1);
+}
 .tagbar {
   display: flex;
   flex-wrap: wrap;
@@ -731,13 +756,117 @@ h3 {
   background: var(--codebg);
 }
 
+/* ---- test rounds ---- */
+.deckbtn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+.deckbtn.primary:hover {
+  color: #fff;
+  filter: brightness(1.12);
+}
+.deckbtn.knew {
+  border-color: #b3d7c6;
+  background: #e4f0ea;
+  color: var(--done);
+  font-weight: 600;
+}
+.deckbtn.miss {
+  border-color: #e6c9ad;
+  background: #fbf1e6;
+  color: #8a4b12;
+  font-weight: 600;
+}
+.deckbtn.knew:hover,
+.deckbtn.miss:hover {
+  color: inherit;
+  filter: brightness(0.97);
+}
+.roundbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.rbar {
+  flex: 1;
+  height: 4px;
+  background: var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.rfill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s;
+}
+.startbox {
+  border: 1px dashed var(--rule);
+  border-radius: 14px;
+  padding: 26px;
+  background: var(--card);
+}
+.startlead {
+  margin: 0 0 16px;
+  color: var(--muted);
+  max-width: 52ch;
+}
+.startbox .deckbar,
+.summary .deckbar {
+  margin-top: 0;
+}
+.summary {
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  padding: 26px;
+  background: var(--card);
+}
+.score {
+  font-size: var(--fs-h2);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+.score span {
+  color: var(--muted);
+  font-weight: 400;
+}
+.summarylead {
+  margin: 14px 0 8px;
+  color: var(--muted);
+}
+.missedlist {
+  margin: 0 0 20px;
+  padding-left: 20px;
+}
+.missedlist li {
+  font-size: var(--fs-body);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rfill {
+    transition: none;
+  }
+}
+
 @media (max-width: 900px) {
   .card {
     min-height: 160px;
     padding: 20px;
   }
+  .deckbar {
+    flex-wrap: wrap;
+  }
   .deckbtn {
     padding: 10px 14px; /* comfortable tap target */
+  }
+  .startbox,
+  .summary {
+    padding: 20px;
   }
   /* the hint is what a touch user reads instead of hovering */
   .deckkeys {

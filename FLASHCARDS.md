@@ -51,11 +51,57 @@ for (let i = 0; i < 5; i++) {
 **5 times** — `i` takes the values 0, 1, 2, 3, 4.
 ````
 
-Two things to watch in headings: keep code in backticks, or Markdown will read
-`/* a block comment */` as emphasis and mangle it to `/_ a block comment _/`;
-and put the `[tags]` last, since the tag syntax reads the end of the line.
+## Keep code in backticks
+
+Not a style rule — Markdown will otherwise eat it, and mostly without saying so:
+
+- `<a>`, `<Welcome />`, `<li>…</li>` are parsed as **HTML**, not text. An
+  unclosed one swallows every card below it in the file; a closed or
+  self-closing one is quietly turned into an element and its text vanishes.
+- `/* a block comment */` reads as emphasis and comes back as
+  `/_ a block comment _/`.
+
+Both are silent, so there is a linter for it:
+
+```
+npm run check-decks    # what is wrong, with file:line
+npm run fix-decks      # wraps the tags in backticks for you
+```
+
+It needs no server and takes no time. It also flags duplicate `order:` values,
+two cards asking the same question (they would share one score), unclosed code
+fences and empty decks — those it reports rather than fixes, since the right
+answer is a judgement call.
+
+`npm run check-render` covers the other half, against a running server: it
+cross-checks the number of cards the page actually shows against the `##`
+headings in the Markdown.
+
+**If a card looks wrong in the browser but `check-decks` says the deck is
+clean, the dev server is serving a stale cache.** Stop it, `rm -rf .data`, and
+start it again.
+
+One more heading rule: put the `[tags]` last, since the tag syntax reads the
+end of the line.
 
 The `/flashcards` page collects every card from every deck, offers the tags as
 filters, and reveals the answer on click. A card with no body renders as "no
 answer written yet", so you can drop in a stack of questions first and fill
 them in later.
+
+## The two modes
+
+**Browse** walks the whole filtered deck a card at a time, in file order or
+shuffled.
+
+**Test yourself** deals a round of ten drawn at random and asks you to mark each
+one _knew it_ or _didn't know it_. Those marks are scored per card and kept in
+`localStorage`, and the score biases the next draw: a card you missed is about
+four times as likely to come up as one you have never seen, and a card you have
+known three times running is about a quarter as likely. Missing it again pushes
+it up further; knowing it a few times lets it fade back. The weighting is in
+[`useCardStats.ts`](app/composables/useCardStats.ts), and "Reset progress" on
+the start screen clears it.
+
+Cards are identified by their heading's anchor slug, so scores survive adding
+and reordering cards — but rewording a question starts it fresh.

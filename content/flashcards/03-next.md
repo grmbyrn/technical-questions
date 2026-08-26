@@ -1,6 +1,6 @@
 ---
 title: Next Fundamentals
-order: 2
+order: 3
 tags: [next-fundamentals]
 ---
 
@@ -16,7 +16,7 @@ page.tsx
 
 In the root layout, app/layout.tsx. The root layout wraps every page, so UI placed there (like a header and nav) shows on all pages.
 
-## Why use Next's Link component instead of a plain <a> tag for internal links?
+## Why use Next's Link component instead of a plain `<a>` tag for internal links?
 
 Link navigates without a full page reload, which is faster and smoother. Link does client-side navigation, keeps the shared layout in place, and preloads pages so they feel instant.
 
@@ -40,7 +40,7 @@ By creating a folder with a page.tsx file inside the app/ directory. The folder 
 
 page.tsx
 
-## What is the root layout.tsx responsible for?
+## What is the root layout.tsx responsible for?
 
 The shared shell that wraps every page, including the html and body tags. Anything you want on every page, like a nav bar, lives in the layout.
 

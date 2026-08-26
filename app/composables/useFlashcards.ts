@@ -104,8 +104,11 @@ export function parseFlashcards(deck: Deck): Flashcard[] {
     if (node[0] === "h2") {
       finish();
       const { question, tags } = splitHeading(node);
+      // MDC's heading anchor is derived from the question text, so a card keeps
+      // its id — and so its score — when cards are inserted above it
+      const anchor = (node[1] as { id?: string })?.id;
       out.push({
-        id: `${deck.id}#${out.length}`,
+        id: `${deck.id}#${anchor || out.length}`,
         question,
         tags: [...new Set([...base, ...tags])],
         front: [],

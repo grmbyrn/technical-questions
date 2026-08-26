@@ -9,7 +9,9 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "check-render": "node scripts/check-render.mjs"
+    "check-render": "node scripts/check-render.mjs",
+    "check-decks": "node scripts/check-decks.mjs",
+    "fix-decks": "node scripts/check-decks.mjs --fix"
   },
   "dependencies": {
     "@nuxt/content": "latest",

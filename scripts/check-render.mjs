@@ -86,12 +86,52 @@ for (const file of files) {
   for (const k of Object.keys(totals)) totals[k] += expected[k];
 }
 
+/**
+ * Flashcards fail silently: raw HTML in a card swallows the cards below it, or
+ * turns into an element whose text simply disappears. Whether the Markdown has
+ * that problem is `npm run check-decks`, which needs no server — what needs
+ * one is the question this answers, which is whether the cards that survived
+ * the Markdown all made it onto the page.
+ */
+const DECKS = path.join(DIR, "flashcards");
+const decks = fs.existsSync(DECKS)
+  ? fs.readdirSync(DECKS).filter((f) => f.endsWith(".md")).sort()
+  : [];
+
+const cards = decks.reduce(
+  (n, f) => n + count(fs.readFileSync(path.join(DECKS, f), "utf8"), /^## /gm),
+  0,
+);
+
+if (decks.length) {
+  const res = await fetch(`${BASE}/flashcards`);
+  if (!res.ok) {
+    failures++;
+    console.error(`✗ flashcards: HTTP ${res.status}`);
+  } else {
+    const html = await res.text();
+    const main = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+    const shown = Number(
+      main.replace(/<[^>]+>/g, " ").match(/(\d+)\s+cards?\s+across/)?.[1],
+    );
+    if (shown !== cards) {
+      failures++;
+      console.error(
+        `✗ flashcards: the page shows ${shown} cards, the Markdown has ` +
+          `${cards} — run \`npm run check-decks\`, and restart the dev server ` +
+          `if it comes back clean (.data/ is a cache)`,
+      );
+    }
+  }
+}
+
 console.log(
   `\n${files.length} pages crawled — ${totals.questions} questions, ` +
-    `${totals.followups} follow-ups, ${totals.code} code blocks`,
+    `${totals.followups} follow-ups, ${totals.code} code blocks\n` +
+    `${decks.length} decks — ${cards} flashcards`,
 );
 if (failures) {
-  console.error(`✗ ${failures} page(s) did not match their Markdown`);
+  console.error(`✗ ${failures} check(s) did not match the Markdown`);
   process.exit(1);
 }
 console.log("✓ every page matches the Markdown it came from");
