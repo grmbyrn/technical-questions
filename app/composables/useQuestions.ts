@@ -22,7 +22,8 @@ export interface Question {
   followups: Followup[];
 }
 
-function textOf(node: unknown): string {
+/** Flattens an MDC node back to its plain text. Also used by the flashcards. */
+export function textOf(node: unknown): string {
   if (typeof node === "string") return node;
   if (Array.isArray(node)) return node.slice(2).map(textOf).join("");
   return "";

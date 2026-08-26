@@ -31,6 +31,8 @@
   --fs-brand: 13px;
   --fs-badge: 10px;
   --fs-topbar: 13.5px;
+  --fs-card: 20px;
+  --fs-chip: 11.5px;
   --nav-pad-y: 5px;
 }
 * {
@@ -381,6 +383,8 @@ h3 {
     --fs-brand: 16px;
     --fs-badge: 11.5px;
     --fs-topbar: 15px;
+    --fs-card: 19px;
+    --fs-chip: 13px;
     --nav-pad-y: 12px;
   }
 
@@ -541,5 +545,212 @@ h3 {
 @media (prefers-reduced-motion: reduce) {
   aside {
     transition: none;
+  }
+}
+
+/* ---------------------------------------------------------------- flashcards
+   Own block at the end of the file so the deck can be styled without threading
+   through the section rules above; its mobile tweaks live at the bottom. */
+.dot.flash {
+  background: var(--accent);
+}
+.tagbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 20px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--fs-chip);
+  line-height: 1.4;
+  cursor: pointer;
+}
+.chip:hover {
+  border-color: #b9c6dc;
+  color: var(--ink);
+}
+.chip.on {
+  background: #eef2ff;
+  border-color: #b9c6f5;
+  color: var(--accent);
+  font-weight: 600;
+}
+.chipnum {
+  opacity: 0.6;
+  font-size: 0.9em;
+}
+.chip.clear {
+  border-style: dashed;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  /* a stable height stops the pager jumping between a one-line and a
+     three-line question */
+  min-height: 190px;
+  padding: 24px 26px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--card);
+  box-shadow: 0 1px 2px rgba(12, 20, 30, 0.05);
+  cursor: pointer;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.card:hover {
+  border-color: #b9c6dc;
+  box-shadow: 0 4px 14px rgba(12, 20, 30, 0.08);
+}
+.card:focus-within {
+  border-color: #b9c6f5;
+}
+/* the front's own body — code and lists, which a heading cannot hold */
+.cardfront {
+  width: 100%;
+}
+.cardfront > :last-child {
+  margin-bottom: 0;
+}
+.cardfront ol,
+.cardfront ul {
+  margin: 0 0 11px;
+  padding-left: 22px;
+}
+.cardfront li {
+  font-size: var(--fs-body);
+  line-height: 1.65;
+}
+.cardtags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cardtag {
+  font-family: var(--mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: #eef2ff;
+  border-radius: 5px;
+  padding: 3px 7px;
+}
+.cardq {
+  font-size: var(--fs-card);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.018em;
+}
+.cardflip {
+  margin-top: auto;
+  padding: 6px 12px;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--codebg);
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: var(--fs-badge);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.card:hover .cardflip {
+  border-color: #b9c6dc;
+  color: var(--accent);
+}
+.cardflip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.answer {
+  border-left: 2px solid #c9d6f0;
+  padding-left: 16px;
+  margin: 16px 0 0 2px;
+}
+.answer > :last-child {
+  margin-bottom: 0;
+}
+.noanswer {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.deckbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.deckbtn {
+  padding: 7px 13px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: var(--fs-pager);
+  cursor: pointer;
+}
+.deckbtn:hover {
+  border-color: #b9c6dc;
+  color: var(--accent);
+}
+.deckbtn.ghostbtn {
+  margin-left: auto;
+  color: var(--muted);
+}
+.deckcount {
+  font-family: var(--mono);
+  font-size: var(--fs-badge);
+  color: var(--muted);
+}
+.deckkeys {
+  margin-top: 12px;
+  font-size: var(--fs-pager);
+  color: var(--muted);
+}
+.deckkeys kbd {
+  font-family: var(--mono);
+  font-size: 0.92em;
+  border: 1px solid var(--rule);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 5px;
+  background: var(--codebg);
+}
+
+@media (max-width: 900px) {
+  .card {
+    min-height: 160px;
+    padding: 20px;
+  }
+  .deckbtn {
+    padding: 10px 14px; /* comfortable tap target */
+  }
+  /* the hint is what a touch user reads instead of hovering */
+  .deckkeys {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .deckbar {
+    flex-wrap: wrap;
+  }
+  .deckbtn.ghostbtn {
+    margin-left: 0;
+    flex: 1;
   }
 }

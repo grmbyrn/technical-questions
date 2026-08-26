@@ -41,8 +41,17 @@ useHead({
   bodyAttrs: { class: computed(() => (navOpen.value ? "navopen" : "")) },
 });
 
+/** The title shown in the mobile top bar: a section, or a standalone page. */
+const pageTitle = computed(() => {
+  if (current.value) return `${current.value.number}. ${current.value.title}`;
+  if (route.path.startsWith("/flashcards")) return "Flashcards";
+  return "Interview Prep";
+});
+
 function step(delta: number) {
   const list = sections.value ?? [];
+  // off the section list entirely (flashcards, 404) — j/k means nothing there
+  if (currentIndex.value < 0) return;
   const next = list[currentIndex.value + delta];
   if (next) router.push(`/${next.slug}`);
 }
@@ -70,9 +79,7 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
       >
         <span class="bars" />
       </button>
-      <span class="topbar-title">
-        {{ current ? `${current.number}. ${current.title}` : "Interview Prep" }}
-      </span>
+      <span class="topbar-title">{{ pageTitle }}</span>
     </header>
 
     <div v-show="navOpen" class="scrim" @click="navOpen = false" />
@@ -97,6 +104,12 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
           </button>
         </div>
         <nav>
+          <div class="navgroup">Practice</div>
+          <NuxtLink class="navlink answered" active-class="active" to="/flashcards">
+            <span class="dot flash" />
+            Flashcards
+          </NuxtLink>
+
           <template v-for="(item, i) in navItems" :key="i">
             <div v-if="item.heading" class="navgroup">{{ item.heading }}</div>
             <NuxtLink

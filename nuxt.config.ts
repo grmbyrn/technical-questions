@@ -24,7 +24,7 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-01",
   nitro: {
     prerender: {
-      routes: sectionRoutes,
+      routes: [...sectionRoutes, "/flashcards"],
       crawlLinks: true,
     },
   },
