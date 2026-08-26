@@ -134,3 +134,97 @@ To stop the browser's default form submission, which reloads the page and wipes 
 ## You want to show an error only when the typed email is invalid. What is the cleanest approach?
 
 Derive the error from the value during render, then show it conditionally. The error is a calculation from state, recomputed each render, so it always matches what was typed. No separate state needed.
+
+## When does the function you pass to useEffect run?
+
+After React has rendered the component to the screen. Effects run after render. That is why they are the place for work that reaches outside React, like logging, a timer, or a fetch.
+
+## What does an empty dependency array, [], tell React to do?
+
+Run the effect once, after the first render. An empty array lists no values that change, so the effect runs on mount and never re-runs. It is the common choice for fetching once.
+
+## Your app freezes in an endless loop of re-renders. Which mistake most likely caused it?
+
+An effect with no dependency array that calls setState, so each render runs the effect, which sets state, which renders again
+
+Setting state in an effect that runs every render is the classic infinite loop. The fix is a dependency array so the effect only runs when it needs to.
+
+## Why do you define an async function inside the effect and call it, instead of making the effect's own function async?
+
+An async function returns a promise, but React expects the effect to return nothing or a cleanup function. React reads the effect's return value as a cleanup function. An async function returns a promise instead, so you nest an async function and call it.
+
+## What is a cleanup function for, and when does React run it?
+
+It stops what the effect started, like a timer; React runs it before the effect re-runs and when the component unmounts. Returning a function from an effect gives React a cleanup to run before the next effect run and on unmount, so nothing keeps running after it should.
+
+## Two sibling components need to read and change the same value. Where should that state live?
+
+In their closest common parent, passed back down as props. Siblings cannot see each other's state, so you lift it up to the parent they both sit inside. That parent owns the one copy and passes it down.
+
+## What is prop drilling?
+
+Passing a prop down through components that do not use it, just to reach a deeper one. The intermediate components accept and forward a prop they never use, only so it can reach the component at the bottom that needs it.
+
+## What does the useContext hook do?
+
+Reads the value from the nearest matching Provider above the component. useContext(SomeContext) reaches up the tree to the closest SomeContext.Provider and returns its value, with no props threaded through the middle.
+
+## Which component can read a context's value with useContext(MyContext)?
+
+Any component rendered inside that context's Provider, at any depth. The Provider makes its value available to everything in the tree beneath it, however deep, without passing props through the middle.
+
+## How do you let a deep component update shared state held in a context?
+
+Keep the state in the provider and pass an updater function through the context value, then call it from the consumer. Put both the value and a function like toggleTheme or setUser in the provider's value. A consumer reads the function with useContext and calls it to update the shared state.
+
+## What does useRef give you?
+
+An object with a current property that stays the same across renders. useRef returns a stable box, { current }. The same object persists across every render, and you read or write whatever you keep in current.
+
+## You attach a ref to an input with ref={inputRef}. When can you safely call inputRef.current.focus()?
+
+In an event handler or an effect, after the element has rendered. React sets current to the DOM node once the element mounts, so by the time a click handler or effect runs, the node is there.
+
+## What happens when you change a ref's current value?
+
+The value is remembered across renders, but the component does not re-render. That is exactly what makes a ref different from state: it persists like state, but updating current never triggers a render.
+
+## Why keep a setInterval id in a ref instead of in state?
+
+It has to survive between renders so you can clear it later, but updating it should not cause a re-render. The id is plumbing the user never sees. A ref remembers it across renders without the pointless re-render that state would cause every time you saved it.
+
+## What makes a function a custom hook?
+
+Its name starts with use and it calls other hooks inside. The use prefix is how React knows to apply the rules of hooks to it. Inside, it calls hooks like useState or useContext.
+
+## Two different components each call useToggle(). What do they share?
+
+The logic, but each gets its own independent state. A custom hook packages shared logic, not shared state. Every call runs its own useState, so the two toggles are completely independent.
+
+## You move the data, loading, error, and fetching effect into a useFetch hook. What does that buy you?
+
+Any component can load data in one line, instead of repeating all that logic. The whole pattern lives in one place. A component just calls useFetch(url) and reads back data, loading, and error, no copied boilerplate.
+
+## What does client-side routing do when the URL changes?
+
+The router swaps which component renders, with no full page reload. The page loads once. When the URL changes the router just renders a different component in place, so there is no reload and your state survives.
+
+## What is the job of Routes and Route?
+
+Routes holds a list of Route elements, and each Route maps one path to the component it renders. Routes picks the first Route whose path matches the URL and renders that Route's element.
+
+## Why use Link instead of a plain anchor tag to move between pages?
+
+Link navigates on the client without reloading the page, so state is kept and there is no flash. A plain anchor loads a whole new page from the server. Link intercepts the click and lets the router swap the page in place.
+
+## A route is defined as path="/products/:id". On the URL /products/mouse, how do you read the id, and what is its value?
+
+const { id } = useParams(), and id is the string "mouse". useParams returns an object keyed by the names in the path. The :id segment matched mouse, and URL params are always strings.
+
+## What does NavLink give you that Link does not?
+
+It adds an active class to itself when its target matches the current URL. That lets you style the current page's link, so a nav bar can show where you are.
+
+## When is useNavigate the right tool instead of a Link?
+
+When you need to navigate from code after something happens, like a form submit. useNavigate gives you a navigate function you call yourself, so you can move to a route once your own logic runs.
