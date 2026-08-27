@@ -99,3 +99,43 @@ It returns null, and calling .remove() on null throws an error. A missed querySe
 ## Which is a safe way to remove an element that might not exist?
 
 Check it first: if (card) { card.remove() }, or use card?.remove(). Both only call remove when card is actually an element, so a null lookup does nothing instead of crashing.
+
+## Your form's submit handler calls event.preventDefault(). What would happen if you removed that line?
+
+The browser would run its default submit, reloading the page and wiping your validation. A form's default submit reloads the page to send it to a server. preventDefault cancels that so your JavaScript stays in control.
+
+## You need the text a user typed into an input. Where do you read it from, and what type do you get back?
+
+input.value, which is always a string. Every input exposes its current text on .value, and it always comes back as a string, even from a number input.
+
+## A required field uses if (input.value.trim() === ""). Why call .trim() instead of comparing input.value to an empty string directly?
+
+So a value of only spaces is treated as empty rather than slipping through. trim() removes leading and trailing whitespace, so " " becomes "" and is correctly caught as empty.
+
+## You want a field to show its error the instant the user types, not only when they submit. Which event should the validator run on?
+
+The input event, which fires on every keystroke. input fires each time the value changes, so the validator re-runs character by character and the message updates live.
+
+## How does a confirm-password check decide whether the two boxes match?
+
+It compares confirmInput.value with passwordInput.value and reports an error when they are not equal. Matching two fields means comparing their two .value strings, for example with !==, and showing an error when they differ.
+
+## A question button sits right before its answer div, both inside the same .faq-item. From the button, how do you reach the answer?
+
+button.nextElementSibling. The answer is the very next element after the button, so nextElementSibling steps straight to it.
+
+## Inside a click handler, event.target is the span the user actually clicked, but you need the whole .faq-item around it. What does event.target.closest(".faq-item") do?
+
+Climbs up through the ancestors from event.target until it finds the nearest .faq-item and returns it. closest() walks up the tree, so wherever the click landed, you get the surrounding item back.
+
+## Event delegation means handling a list of elements by adding the click listener where, instead of one per item?
+
+Once, on the parent element that contains them all. Clicks bubble up to the parent, so a single listener there can handle every child.
+
+## You add a new question to the list with createElement after the page has loaded. With one delegated listener on the list, clicking the new question works immediately. Why?
+
+The new question is inside the list, so its clicks bubble up to the listener already on the list. Delegation listens on the parent, so any child added later is covered with no extra wiring.
+
+## In the accordion, clicking a question should open its answer and close any other open one. Before opening the clicked item, what should the handler do?
+
+Loop the list's items and close every one, then open just the clicked item. Resetting all items first guarantees only the clicked one ends up open.
