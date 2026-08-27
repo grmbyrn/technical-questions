@@ -38,7 +38,7 @@ React associates a hook call with its stored state by call order, not by name…
 A card whose question needs a code block or a list looks like this:
 
 ````markdown
-## How many times does this loop run? [loops]
+## How many times does this loop run?
 
 ```js
 for (let i = 0; i < 5; i++) {

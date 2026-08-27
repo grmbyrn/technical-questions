@@ -4,7 +4,7 @@ order: 2
 tags: [react]
 ---
 
-## Why can't hooks be called conditionally? [hooks]
+## Why can't hooks be called conditionally?
 
 React associates a hook call with its stored state by _call order_, not by
 name. Each fiber holds a linked list of hook objects and a cursor that advances
@@ -15,7 +15,7 @@ Skip a call on a later render and every hook after it shifts by one, so a
 ("Rendered fewer hooks than expected") but the aligned case is a silent
 wrong-value bug.
 
-## What does the dependency array of `useEffect` actually control? [hooks]
+## What does the dependency array of `useEffect` actually control?
 
 Whether the effect re-runs after a render. React compares each entry to the
 previous render's with `Object.is`; if all match, it skips both the cleanup and
@@ -25,7 +25,7 @@ the effect.
 The array is not a list of things the effect is _allowed_ to read — reading a
 value you left out gives you a stale one.
 
-## What is reconciliation? [rendering]
+## What is reconciliation?
 
 The diff React runs between the previous element tree and the one your render
 returned, to decide the smallest set of DOM operations.

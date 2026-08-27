@@ -13,7 +13,7 @@ equality algorithm first, which coerces the operands — so `'1' == 1`,
 Use `===` everywhere. The one idiom worth keeping is `x == null`, which is true
 for exactly `null` and `undefined` and nothing else.
 
-## What does the event loop do with a promise callback vs. a `setTimeout` callback? [async]
+## What does the event loop do with a promise callback vs. a `setTimeout` callback?
 
 They go on different queues. Promise callbacks are microtasks; `setTimeout` is
 a macrotask. After the current synchronous code finishes, the engine drains the
@@ -27,7 +27,7 @@ console.log("sync");
 // sync, promise, timeout
 ```
 
-## What is a closure? [closures]
+## What is a closure?
 
 A function together with the scope it was created in. The inner function keeps
 a live reference to the outer variables — not a copy — so it can read and write
@@ -36,24 +36,24 @@ them long after the outer call has returned.
 That is what makes module-private state, `useState`-style hooks and
 once-only initialisers possible without a class.
 
-## What is JavaScript primarily used for? [basics]
+## What is JavaScript primarily used for?
 
 Adding logic and behavior to web pages. JavaScript is the programming language
 that powers interactivity and computation on the web.
 
-## What does `console.log` do? [basics]
+## What does `console.log` do?
 
 Prints whatever value you give it to the console. `console.log` is how you tell
 JavaScript to show you a value — your main tool for seeing what your code is
 doing.
 
-## What is an expression? [basics]
+## What is an expression?
 
 Anything that produces a value. An expression is anything JavaScript can
 evaluate down to a value: a literal like `5`, a math operation like `2 + 3`, or
 a variable name once we get to those.
 
-## What does this print to the console? [basics]
+## What does this print to the console?
 
 ```js
 console.log(10 / 2);
@@ -63,7 +63,7 @@ console.log(10 / 2);
 
 `5`. JavaScript evaluates `10 / 2` to `5`, then `console.log` prints the result.
 
-## Which of the following are valid comments in JavaScript? [basics]
+## Which of the following are valid comments in JavaScript?
 
 1. `/* a block comment */`
 2. `# a comment`
@@ -76,12 +76,12 @@ console.log(10 / 2);
 lines as you want. `//` comments out the rest of the line. `#` is Python, and
 `<!-- -->` is HTML.
 
-## When should you reach for `let` instead of `const`? [variables]
+## When should you reach for `let` instead of `const`?
 
 When the value will need to change later. `let` allows reassignment, `const`
 doesn't. Default to `const`; only use `let` when you actually need to reassign.
 
-## Which of the following are primitive types in JavaScript? (Select all that apply.) [types]
+## Which of the following are primitive types in JavaScript? (Select all that apply.)
 
 1. `null`
 2. `string`
@@ -94,7 +94,7 @@ doesn't. Default to `const`; only use `let` when you actually need to reassign.
 **All except 4.** There is no `list` type in JavaScript — arrays are objects.
 `null` is one of the primitives (a deliberate "no value").
 
-## What's the practical difference between `null` and `undefined`? [types]
+## What's the practical difference between `null` and `undefined`?
 
 `null` is something you set on purpose; `undefined` is what JavaScript fills in
 when no value was given.
@@ -103,13 +103,13 @@ when no value was given.
 `undefined` is JavaScript's default for any variable that's been declared but
 not assigned.
 
-## What does `typeof null` return? [types]
+## What does `typeof null` return?
 
 `"object"`. Yes, this is a long-standing JavaScript bug — `typeof null` returns
 `"object"`, not `"null"`. The language designers never fixed it because too
 much existing code depends on the current behavior.
 
-## What does `"5" + 1` evaluate to, and what about `"5" - 1`? [types]
+## What does `"5" + 1` evaluate to, and what about `"5" - 1`?
 
 `"51"` (a string) and `4` (a number).
 
@@ -117,12 +117,12 @@ much existing code depends on the current behavior.
 converted to `"1"` and the two get glued together. `-` is only ever math, so
 `"5"` gets converted to the number `5` and you get `4`.
 
-## What does `10 % 3` evaluate to? [operators]
+## What does `10 % 3` evaluate to?
 
 `1`. `%` is the remainder (or modulo) operator — it gives back what's left over
 after dividing. 10 divided by 3 is 3 with 1 left over.
 
-## Why does `volume || 100` return `100` when `volume` is `0`? [operators]
+## Why does `volume || 100` return `100` when `volume` is `0`?
 
 `||` returns the right side whenever the left side is falsy, and `0` is one of
 the six falsy values: `false`, `0`, `""`, `null`, `undefined`, `NaN`.
@@ -130,14 +130,14 @@ the six falsy values: `false`, `0`, `""`, `null`, `undefined`, `NaN`.
 Keep that in mind when `0` or `""` is a value you actually want to keep — `??`
 is the operator that only falls back on `null` and `undefined`.
 
-## What's the most idiomatic way to check "does `username` have a non-empty value"? [operators]
+## What's the most idiomatic way to check "does `username` have a non-empty value"?
 
 `if (username) { ... }` — the condition is checked for truthiness. An empty
 string, `null`, or `undefined` all count as falsy, so only a non-empty string
 passes through. This is the idiom you'll see most often for "does this value
 exist?" checks.
 
-## How many times does this loop run? [loops]
+## How many times does this loop run?
 
 ```js
 for (let i = 0; i < 5; i++) {
@@ -151,7 +151,7 @@ for (let i = 0; i < 5; i++) {
 condition `i < 5` keeps going as long as `i` is less than 5. Switching to
 `i <= 5` would run six times.
 
-## Which loop guarantees its body runs at least once, even if the condition is false from the start? [loops]
+## Which loop guarantees its body runs at least once, even if the condition is false from the start?
 
 `do...while`. It checks the condition _after_ the body, so the body always runs
 once before the condition has a chance to stop it.
@@ -159,7 +159,7 @@ once before the condition has a chance to stop it.
 Classic use: keep prompting the user for input until they give a valid one,
 since you have to ask at least once.
 
-## What's the difference between `break` and `continue`? [loops]
+## What's the difference between `break` and `continue`?
 
 `break` exits the loop completely; `continue` skips the rest of this pass and
 starts the next one.
@@ -168,7 +168,7 @@ starts the next one.
 condition would have kept it going. `continue` is the skip button: the rest of
 the current pass is abandoned, but the loop moves on to the next iteration.
 
-## Why is this loop a bug? [loops]
+## Why is this loop a bug?
 
 ```js
 let i = 0;
@@ -186,7 +186,7 @@ A `while` loop has no built-in update step — you have to change the counter
 inside the body yourself. Without `i++`, `i < 5` is true forever and the loop
 locks up.
 
-## With two nested `for` loops walking arrays, the outer counter is `i`. The inner counter should be: [loops]
+## With two nested `for` loops walking arrays, the outer counter is `i`. The inner counter should be:
 
 **A different name — conventionally `j`.** If the inner loop also uses `i`,
 it'll overwrite the outer loop's counter on every pass and the outer condition
@@ -195,7 +195,7 @@ will misbehave.
 The convention is `i` for outer, `j` for inner, `k` for a third level. The
 names don't matter, they just have to be different.
 
-## Which loop is the most idiomatic choice for printing each item here? [loops]
+## Which loop is the most idiomatic choice for printing each item here?
 
 ```js
 const colors = ["red", "green", "blue"];
@@ -213,7 +213,7 @@ for (const color of colors) {
 index — no counter to set up, no `colors[i]` to read inside the body. Reach for
 `for...of` for the common case, and indexed `for` when you actually need `i`.
 
-## What's the difference between a parameter and an argument? [functions]
+## What's the difference between a parameter and an argument?
 
 Parameters are the names in the function declaration; arguments are the values
 passed when the function is called.
@@ -223,7 +223,7 @@ declaration). In `greet("Brad")`, `"Brad"` is the argument (the value going
 into the slot). Most people use them interchangeably in casual speech; they're
 not actually the same thing.
 
-## What does this function return? [functions]
+## What does this function return?
 
 ```js
 function double(n) {
@@ -239,7 +239,7 @@ function double(n) {
 function. Without a `return` statement the function silently returns
 `undefined`. The fix is `return n * 2`.
 
-## Convert this to an arrow function with an implicit return. [functions]
+## Convert this to an arrow function with an implicit return.
 
 ```js
 function triple(n) {
@@ -257,7 +257,7 @@ Arrow syntax plus an implicit return — no braces and no `return` keyword for a
 single-expression body. The expression `n * 3` is both the body and the value
 returned.
 
-## What's the value of `count` after this loop? [scope]
+## What's the value of `count` after this loop?
 
 ```js
 for (let count = 0; count < 5; count++) {
@@ -275,7 +275,7 @@ outside it.
 only exists inside the loop. Declare `count` outside the loop if you need to
 read it afterwards.
 
-## What does this print? [functions]
+## What does this print?
 
 ```js
 function collect(label, ...items) {
@@ -291,7 +291,7 @@ collects the remaining three into an array, so `items.length` is 3.
 
 The rest parameter is a real array, so every array method works on it.
 
-## What does this print? [objects]
+## What does this print?
 
 ```js
 const user = { name: "Brad" };
@@ -305,7 +305,7 @@ console.log(user.age);
 Convenient when you don't know what's on the object, but a real source of bugs
 when you mistype a key — `user.naem` is also just `undefined`, no error.
 
-## Will this throw? [objects]
+## Will this throw?
 
 ```js
 const user = { name: "Brad" };
@@ -323,7 +323,7 @@ value. It does not make the object immutable.
 updating and deleting properties on the existing object are all fine. The label
 is locked; the contents aren't.
 
-## What does this print? [objects]
+## What does this print?
 
 ```js
 const user = {
