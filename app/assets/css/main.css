@@ -579,6 +579,35 @@ h3 {
   font-weight: 600;
   box-shadow: 0 1px 2px rgba(12, 20, 30, 0.1);
 }
+.topicbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+.topiclabel {
+  font-family: var(--mono);
+  font-size: var(--fs-eyebrow);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.topicselect {
+  flex: 1;
+  max-width: 340px;
+  padding: 7px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: var(--fs-pager);
+  cursor: pointer;
+}
+.topicselect:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
 .tagbar {
   display: flex;
   flex-wrap: wrap;
@@ -867,6 +896,10 @@ h3 {
   .startbox,
   .summary {
     padding: 20px;
+  }
+  .topicselect {
+    max-width: none;
+    padding: 11px 10px; /* comfortable tap target */
   }
   /* the hint is what a touch user reads instead of hovering */
   .deckkeys {

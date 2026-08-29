@@ -8,10 +8,32 @@ const { data: decks } = await useFlashcards();
 
 const cards = computed(() => (decks.value ?? []).flatMap((d) => parseFlashcards(d)));
 
-/** Tag filter, most-used first. No selection means "everything". */
+/**
+ * Two filters, narrowing in order: a topic is one deck, and the tags then cut
+ * within it. "" is every topic, which is the default both start from.
+ */
+const topics = computed(() => {
+  const counts = new Map<string, { title: string; count: number }>();
+  for (const c of cards.value) {
+    const seen = counts.get(c.deckId) ?? { title: c.deck, count: 0 };
+    seen.count++;
+    counts.set(c.deckId, seen);
+  }
+  return [...counts.entries()].map(([id, t]) => ({ id, ...t }));
+});
+
+const topic = ref("");
+const topicPool = computed(() =>
+  topic.value ? cards.value.filter((c) => c.deckId === topic.value) : cards.value,
+);
+const topicName = computed(
+  () => topics.value.find((t) => t.id === topic.value)?.title ?? "",
+);
+
+/** Tag filter, most-used first, counted within the chosen topic. */
 const tags = computed(() => {
   const counts = new Map<string, number>();
-  for (const c of cards.value) {
+  for (const c of topicPool.value) {
     for (const t of c.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
   }
   return [...counts.entries()]
@@ -28,10 +50,18 @@ function toggleTag(tag: string) {
     : [...active.value, tag];
 }
 
+// a tag selected under one topic usually does not exist under the next, and
+// leaving it on would silently empty the pool
+watch(topic, () => {
+  active.value = active.value.filter((t) =>
+    tags.value.some((x) => x.tag === t),
+  );
+});
+
 const pool = computed(() =>
   active.value.length
-    ? cards.value.filter((c) => c.tags.some((t) => active.value.includes(t)))
-    : cards.value,
+    ? topicPool.value.filter((c) => c.tags.some((t) => active.value.includes(t)))
+    : topicPool.value,
 );
 
 const mode = ref<"browse" | "test">("browse");
@@ -197,7 +227,18 @@ useHead({
       </button>
     </div>
 
-    <div v-if="tags.length" class="tagbar">
+    <div class="topicbar">
+      <label class="topiclabel" for="topic">Topic</label>
+      <select id="topic" v-model="topic" class="topicselect">
+        <option value="">All topics ({{ cards.length }})</option>
+        <option v-for="t in topics" :key="t.id" :value="t.id">
+          {{ t.title }} ({{ t.count }})
+        </option>
+      </select>
+    </div>
+
+    <!-- one tag covering the whole topic filters nothing, so it stays hidden -->
+    <div v-if="tags.length > 1" class="tagbar">
       <button
         v-for="t in tags"
         :key="t.tag"
@@ -243,7 +284,7 @@ useHead({
       <p v-else class="noanswer">
         {{
           cards.length
-            ? "No cards match the selected tags."
+            ? "No cards match that topic and tags."
             : "No cards yet — add a Markdown file to content/flashcards/."
         }}
       </p>
@@ -314,14 +355,17 @@ useHead({
       <!-- waiting to start -->
       <div v-else class="startbox">
         <p v-if="pool.length" class="startlead">
-          {{ roundSize }} cards drawn at random, weighted towards the ones you
-          have missed before.
+          {{ roundSize }} cards drawn at random from
+          <strong>{{ topicName || "all topics" }}</strong
+          ><template v-if="active.length">
+            tagged {{ active.join(" or ") }}</template
+          >, weighted towards the ones you have missed before.
           <template v-if="missedCount">
             {{ missedCount }} card{{ missedCount === 1 ? " is" : "s are" }}
             currently being drilled.
           </template>
         </p>
-        <p v-else class="noanswer">No cards match the selected tags.</p>
+        <p v-else class="noanswer">No cards match that topic and tags.</p>
 
         <div v-if="pool.length" class="deckbar">
           <button class="deckbtn primary" @click="startRound">

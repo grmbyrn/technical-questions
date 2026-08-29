@@ -22,6 +22,9 @@ export interface Flashcard {
   id: string;
   question: string;
   tags: string[];
+  /** The deck the card came from — its file, and the title shown as a topic. */
+  deckId: string;
+  deck: string;
   /** Extra front-of-card content — the lists and code a heading cannot hold. */
   front: Node[];
   /** MDC nodes for the answer; empty when the card has no answer written. */
@@ -111,6 +114,8 @@ export function parseFlashcards(deck: Deck): Flashcard[] {
         id: `${deck.id}#${anchor || out.length}`,
         question,
         tags: [...new Set([...base, ...tags])],
+        deckId: deck.id,
+        deck: deck.title,
         front: [],
         answer: [],
         hasAnswer: false,
