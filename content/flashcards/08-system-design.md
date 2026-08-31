@@ -15,7 +15,7 @@ tags: [system-design]
 
 **4.** Without an index, finding a user by email means scanning every row in the table -- 10 million users means 10 million rows to check. An index lets the database jump straight to the matching rows in milliseconds. Indexes actually cost extra storage, they don't save it.
 
-## Normalization means duplicating data across records so reads can avoid joins.
+## Normalization means duplicating data across records so reads can avoid joins.
 
 1. True
 2. False

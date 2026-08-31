@@ -71,7 +71,7 @@ With className, because class is a reserved word in JavaScript. JSX is JavaScrip
 
 Map the array to JSX elements, returning one element per item. `array.map(item => <li>...</li>)` returns an array of elements, and JSX renders each one.
 
-## Why does each item in a mapped list need a key?
+## Why does each item in a mapped list need a key?
 
 So React can identify which items changed, were added, or removed between renders. The key is a stable identity for each item, letting React update the list efficiently instead of rebuilding it.
 
@@ -99,7 +99,7 @@ Map the array to ProductCard elements, passing each item's fields as props and a
 
 A pair: the current state value and a function to update it. const [value, setValue] = useState(initial). The first item is the current value, the second is the setter.
 
-## How do you change a piece of state so the component re-renders?
+## How do you change a piece of state so the component re-renders?
 
 Call the setter function from useState. Calling the setter stores the new value and tells React to re-render with it.
 
@@ -131,7 +131,7 @@ A checkbox binds to checked and reads e.target.checked, instead of value and e.t
 
 To stop the browser's default form submission, which reloads the page and wipes your React state. Without it the page reloads on submit, so you call preventDefault and handle the submission in React instead.
 
-## You want to show an error only when the typed email is invalid. What is the cleanest approach?
+## You want to show an error only when the typed email is invalid. What is the cleanest approach?
 
 Derive the error from the value during render, then show it conditionally. The error is a calculation from state, recomputed each render, so it always matches what was typed. No separate state needed.
 
@@ -228,3 +228,23 @@ It adds an active class to itself when its target matches the current URL. That 
 ## When is useNavigate the right tool instead of a Link?
 
 When you need to navigate from code after something happens, like a form submit. useNavigate gives you a navigate function you call yourself, so you can move to a route once your own logic runs.
+
+## What is the virtual DOM, and why does React keep one?
+
+A lightweight JavaScript description of what the UI should look like, which React diffs against the previous one to work out the smallest set of real DOM changes. Touching the real DOM is expensive, so React compares two cheap object trees instead and only writes the differences.
+
+## What is the difference between props and state?
+
+Props come in from the parent and are read-only inside the component; state is owned by the component and changing it triggers a re-render. If a value is passed down, it is a prop. If the component itself has to remember and change it, it is state.
+
+## What actually makes a component re-render?
+
+Its own state changing, a context it reads changing, or its parent re-rendering. That last one catches people out: a parent re-rendering re-renders its children by default, whether or not their props actually changed.
+
+## What do `useMemo` and `useCallback` do, and when are they worth adding?
+
+`useMemo` caches a computed value between renders and `useCallback` caches a function, both keyed on a dependency array. They earn their place when a calculation is genuinely expensive, or when the value is a dependency of an effect or a memoised child that would otherwise see a brand new reference every render. Adding them everywhere costs memory and comparisons for nothing.
+
+## Why does an effect run twice in development?
+
+React StrictMode deliberately mounts, unmounts and remounts each component in development to expose effects that are missing a cleanup. It does not happen in production, and the fix is to write the cleanup rather than to remove StrictMode.

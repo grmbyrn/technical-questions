@@ -32,12 +32,18 @@ const problem = (where, msg, line) => {
  * Wraps anything tag-shaped in backticks so it renders as text.
  *
  * A balanced pair is wrapped whole (`<li>x</li>`), otherwise the lone tag is
- * (`<Welcome />`). This is the conservative fix — it always renders what you
- * typed, but if the tag sat inside a larger expression you may want to widen
- * the backticks by hand afterwards.
+ * (`<Welcome />`). An identifier butted up against the `<` comes along with
+ * it, so a TypeScript generic is wrapped as `Partial<Options>` rather than as
+ * a bare `<Options>` hanging off the name.
+ *
+ * It is still the conservative fix — always correct, but if the tag sat inside
+ * a longer expression you may want to widen the backticks by hand.
  */
-const TAGS =
-  /<([a-zA-Z][\w.-]*)([^>]*)>([\s\S]*?)<\/\1>|<[a-zA-Z/!][^>]*>/g;
+const IDENT = "([A-Za-z_$][\\w$.]*)?";
+const TAGS = new RegExp(
+  `${IDENT}<([a-zA-Z][\\w.-]*)([^>]*)>([\\s\\S]*?)<\\/\\2>|${IDENT}<[a-zA-Z/!][^>]*>`,
+  "g",
+);
 
 const backtick = (segment) => segment.replace(TAGS, (m) => `\`${m}\``);
 
@@ -69,7 +75,52 @@ for (const file of decks) {
   }
 
   // ---- line by line ----
-  lines.forEach((line, i) => {
+  lines.forEach((raw, i) => {
+    let line = raw;
+
+    /*
+     * Invisible characters, which is the worst way for a card to break. A
+     * heading is `##` followed by a *space*; paste one in from a browser or a
+     * word processor and the space can be a non-breaking space instead, which
+     * looks identical and is not a heading at all — the card silently becomes
+     * part of the answer above it.
+     */
+    const invisible = raw.match(/[\u00a0\u2007\u202f\u200b\u200c\ufeff]/g);
+    if (invisible) {
+      const cleaned = raw
+        .replace(/[\u00a0\u2007\u202f]/g, " ") // look like a space, are not
+        .replace(/[\u200b\u200c\ufeff]/g, ""); // look like nothing at all
+      const what =
+        {
+          "\u00a0": "non-breaking space",
+          "\u2007": "figure space",
+          "\u202f": "narrow no-break space",
+          "\u200b": "zero-width space",
+          "\u200c": "zero-width non-joiner",
+          "\ufeff": "byte-order mark",
+        }[invisible[0]] ?? "invisible character";
+      const heading = /^##[^ \t]/.test(line);
+
+      if (FIX) {
+        line = cleaned;
+        changed = true;
+        fixed++;
+        console.log(
+          `✎ ${where}:${i + 1}  ${what}${heading ? " after ##" : ""}\n` +
+            `    ${cleaned.trim().slice(0, 78)}`,
+        );
+      } else {
+        problem(
+          `${where}:${i + 1}`,
+          heading
+            ? `a ${what} after \`##\` — this is NOT a heading, so the card is ` +
+              `swallowed by the answer above it`
+            : `contains a ${what}`,
+          line.trim(),
+        );
+      }
+    }
+
     if (line.trimStart().startsWith("```")) fenced = !fenced;
 
     if (fenced || line.startsWith("```")) {

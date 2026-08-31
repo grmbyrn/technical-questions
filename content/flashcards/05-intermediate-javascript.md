@@ -136,3 +136,29 @@ It is a normal array, so use the methods you already know: posts.filter((post) =
 ## A user object has no company field. What does user.company?.name evaluate to?
 
 undefined, because optional chaining short-circuits when company is missing instead of throwing. When the value before ?. is null or undefined, the whole expression stops and returns undefined rather than crashing.
+
+## What is the difference between `forEach` and `map`?
+
+`forEach` runs the function for each item and returns `undefined`; `map` returns a new array of whatever the function returned. Use `forEach` for a side effect and `map` when you want the transformed list — assigning the result of `forEach` to a variable is a common slip that leaves you holding `undefined`.
+
+## What does `[10, 9, 100].sort()` return, and why?
+
+```js
+console.log([10, 9, 100].sort());
+```
+
+---
+
+`[10, 100, 9]`. The default sort converts every element to a string and compares those, so `"100"` sorts before `"9"`. Sorting numbers means passing a comparator: `.sort((a, b) => a - b)`.
+
+## What is the difference between `Promise.all` and `Promise.allSettled`?
+
+`Promise.all` rejects as soon as any one promise rejects, throwing away the results of the rest; `Promise.allSettled` always fulfils, with one entry per promise saying whether it was fulfilled or rejected. Use `all` when you need every piece to succeed, and `allSettled` when you want to report on partial failure.
+
+## What is the difference between a shallow copy and a deep copy?
+
+A shallow copy duplicates the top level only, so nested objects are still shared with the original; a deep copy duplicates the whole tree. `{ ...user }` and `Object.assign({}, user)` are shallow, so mutating `copy.address.city` also changes the original. `structuredClone(user)` gives you a deep copy.
+
+## What is debouncing, and when do you reach for it?
+
+Delaying a function until a burst of calls has stopped, so it runs once at the end instead of on every event. It suits anything firing far faster than you want to act on it — a search box that would otherwise send a request per keystroke, or a resize handler recalculating layout — where only the final value matters.

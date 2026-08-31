@@ -48,11 +48,11 @@ The shared shell that wraps every page, including the html and body tags. Anythi
 
 On the server, where it renders to HTML before reaching the browser. Components are Server Components by default. You opt specific pieces into the browser later.
 
-## How do you make a route segment dynamic in the App Router?
+## How do you make a route segment dynamic in the App Router?
 
 Name the folder in square brackets, like [slug]. A bracketed folder matches any value in that position, and the name inside the brackets becomes the key you read back.
 
-## Inside app/blog/[slug]/page.tsx, how do you read the slug from the URL?
+## Inside app/blog/[slug]/page.tsx, how do you read the slug from the URL?
 
 Await the params prop the page receives, then read slug from it. params is passed to the page as a Promise. The component is async and does const { slug } = await params.
 
@@ -60,7 +60,7 @@ Await the params prop the page receives, then read slug from it. params is passe
 
 Because params is a Promise, so you await it. In the current App Router, params (and searchParams) arrive as Promises so Next can stream them. Awaiting requires an async component.
 
-## Your [slug] page does const post = posts.find((p) => p.slug === slug). Why add an if (!post) check before rendering?
+## Your [slug] page does const post = posts.find((p) => p.slug === slug). Why add an if (!post) check before rendering?
 
 find returns undefined when no post matches the slug, so reading the title off undefined would crash the page. A bracketed route matches any value, so someone can visit a slug that isn't in your data. find comes back undefined there, and a simple if (!post) lets you show a not-found message instead of crashing.
 

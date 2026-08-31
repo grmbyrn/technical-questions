@@ -283,7 +283,7 @@ const won: Medal = Medal.Gold. An enum type accepts its own members only, reache
 
 **2.** A literal union; it's erased at compile time and a matching string satisfies it directly. The union adds nothing to the running program and needs no ceremony at assignment. That's why newer codebases mostly reach for it first.
 
-## In function firstItem<T>(items: T[]): T, what is T?
+## In function `firstItem<T>(items: T[]): T`, what is `T`?
 
 A type parameter: a placeholder type, filled in fresh at every call. Each call fills the slot with its own type, so one function serves every element type without losing checking.
 
@@ -302,19 +302,19 @@ const result = firstItem(primes);
 
 number; TypeScript inferred it from the argument. The argument is a number[], so T is number for this call, and the return type follows. No type argument written by hand.
 
-## What does the constraint in `function heaviest<T extends { weightKg: number }>(boxes: T[]): T` change?
+## What does the constraint in `function heaviest<T extends { weightKg: number }>(boxes: T[]): T` change?
 
 The body may read weightKg, and only types that have it can be passed in; T still comes out as the caller's full type. The constraint is the entry requirement. It unlocks the member inside AND blocks bad call sites, without giving up what-goes-in-is-what-comes-out.
 
 ## Speaker has name, topic, email, and city. You need a type with ONLY name and topic. Which derives it?
 
-1. Omit<Speaker, "name" | "topic">
+1. `Omit<Speaker, "name" | "topic">`
 
-2. Partial<Speaker>
+2. `Partial<Speaker>`
 
-3. Speaker<"name" | "topic">
+3. `Speaker<"name" | "topic">`
 
-4. Pick<Speaker, "name" | "topic">
+4. `Pick<Speaker, "name" | "topic">`
 
 ---
 
@@ -322,6 +322,26 @@ The body may read weightKg, and only types that have it can be passed in; T stil
 
 Pick keeps exactly the members you name, written as a union of quoted names. Deriving beats re-typing a copy that will drift.
 
-## What does Partial<Options> produce, and what is it typically for?
+## What does Partial`<Options>` produce, and what is it typically for?
 
 The same members with each made optional; the natural type for update-style functions. An update is "some of the shape." Partial derives exactly that, and it stays in sync when Options changes.
+
+## What does a type assertion like `value as User` actually do?
+
+It tells the compiler to treat the value as that type, and checks nothing at runtime. Assertions are erased along with every other annotation, so if the value is not really a `User` there is no error at the assertion and a crash later, when you read a property that was never there. Narrowing with a real check is safer wherever it is possible.
+
+## What is the `never` type, and where does it turn up?
+
+The type of a value that can never exist. It is the return type of a function that always throws or never finishes, it is what a union collapses to once every member has been ruled out, and it is the trick behind exhaustiveness checks: assign the value to a `never` in the default case and the compiler errors the day someone adds a new member to the union.
+
+## TypeScript is structurally typed. What does that mean?
+
+Two types are compatible when their shapes match, regardless of their names or where they were declared. An object literal with the right properties satisfies an interface it has never heard of, which is why you rarely have to declare that something implements a type — having the members is enough.
+
+## What is a type predicate like `function isCat(pet: Pet): pet is Cat` for?
+
+It teaches the compiler that a `true` return from your own function means the argument is that narrower type. Without the `pet is Cat` return type the function is just a boolean check and nothing narrows inside the `if`; with it, TypeScript treats the value as a `Cat` in the true branch.
+
+## What does `as const` do?
+
+It infers the narrowest possible types instead of widening them, and makes the result deeply readonly. `const sizes = ["s", "m"]` infers `string[]`, while `const sizes = ["s", "m"] as const` infers `readonly ["s", "m"]`, so the values can be used as a literal union rather than as plain strings.

@@ -341,7 +341,7 @@ console.log(user.address.city);
 
 "New York" - spread is a SHALLOW copy. The top-level objects are separate, but the nested address is shared between them. { ...user } copies the top-level properties, but address is itself an object, and the reference to that nested object gets copied, not its contents. Both user.address and copy.address point to the same inner object, so changing it through one shows up through the other. The fix is to spread the nested object too: { ...user, address: { ...user.address, city: "New York" } }.
 
-## What does this print?
+## What does this print?
 
 ```js
 const user = {
@@ -371,3 +371,37 @@ const settings = { ...overrides, ...defaults };
 ---
 
 "light" - defaults is spread LAST, so its theme overwrites the earlier one from overrides. In an object literal, later keys win over earlier ones. Here the order is ...overrides then ...defaults, so defaults.theme ("light") overwrites overrides.theme ("dark"). If you wanted overrides to win, the order would need to be { ...defaults, ...overrides }.
+
+## What is hoisting, and how do `var`, `let` and `const` behave under it?
+
+Declarations are processed before the code in a scope runs, but only `var` is initialised to `undefined`. Reading a `var` before its line gives `undefined`; reading a `let` or `const` before its line throws a ReferenceError, because it sits in the temporal dead zone from the top of the block until the declaration is reached.
+
+## What is the difference between a function declaration and a function expression?
+
+A declaration is hoisted whole, so you can call it before it appears in the file; an expression is only assigned when execution reaches that line. `function total() {}` can be called from above it. `const total = function () {}` cannot, because `total` is still in the temporal dead zone until that line runs.
+
+## What does `this` refer to in a regular function versus an arrow function?
+
+In a regular function `this` is decided by how the function is called; an arrow function has no `this` of its own and uses the one from the scope it was written in. That is why a regular callback inside a method loses `this` while an arrow function keeps it, and why arrow functions are the wrong choice for object methods that need `this` to be the object.
+
+## What does this print, and why do the two arguments behave differently?
+
+```js
+function rename(person, label) {
+  person.name = "changed";
+  label = "changed";
+}
+
+const user = { name: "Ada" };
+let title = "engineer";
+rename(user, title);
+console.log(user.name, title);
+```
+
+---
+
+`changed engineer`. Arguments are always passed by value, but for an object that value is a reference, so `person` points at the same object and mutating it is visible outside. `label` holds a copy of the string, so reassigning it only changes the local copy.
+
+## What is the difference between `for...in` and `for...of`?
+
+`for...in` walks an object's keys; `for...of` walks the values of anything iterable, like an array or a string. On an array `for...in` hands you `"0"`, `"1"`, `"2"` as strings and also picks up inherited enumerable properties, which is why `for...of` is the right loop for array values.

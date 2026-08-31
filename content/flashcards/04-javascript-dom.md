@@ -28,7 +28,7 @@ It resets, because the browser rebuilds the DOM from the original HTML. DOM chan
 
 The first .card element only. querySelector always returns the first match. Use querySelectorAll to get all of them.
 
-## What does document.querySelectorAll(".feature") return?
+## What does document.querySelectorAll(".feature") return?
 
 A NodeList of every matching element. A NodeList you can loop with forEach and read with .length, though it is not a full array.
 
@@ -44,7 +44,7 @@ card.querySelector(".price"). Calling querySelector on an element scopes the sea
 
 innerHTML. innerHTML parses the string as markup, so a tag like strong becomes real bold text.
 
-## You see the error Cannot read properties of null in the console. What most likely happened?
+## You see the error Cannot read properties of null in the console. What most likely happened?
 
 A selector above that line matched nothing and returned null, then you read a property off it. That is the classic cause. Log the element to confirm it is null, then fix the selector to match a real id or class.
 
@@ -139,3 +139,23 @@ The new question is inside the list, so its clicks bubble up to the listener alr
 ## In the accordion, clicking a question should open its answer and close any other open one. Before opening the clicked item, what should the handler do?
 
 Loop the list's items and close every one, then open just the clicked item. Resetting all items first guarantees only the clicked one ends up open.
+
+## What is event bubbling?
+
+After an event fires on an element it travels up through every ancestor, firing the same event on each one. A click on a button inside a card also fires on the card, then the container, then `document`, which is exactly what makes event delegation work.
+
+## What is the difference between `event.preventDefault()` and `event.stopPropagation()`?
+
+`preventDefault()` cancels the browser's default behaviour for the event; `stopPropagation()` stops the event travelling up to ancestor elements. On a form submit it is `preventDefault()` that stops the page reloading. `stopPropagation()` would leave the reload happening and instead prevent any outer listener from hearing about the event at all.
+
+## Inside a handler, what is the difference between `event.target` and `event.currentTarget`?
+
+`target` is the deepest element the event actually started on; `currentTarget` is the element the listener is attached to. Click an icon inside a button and `target` is the icon while `currentTarget` is the button you bound to, which is why delegation reads `target` and a per-element handler usually wants `currentTarget`.
+
+## Why prefer `textContent` over `innerHTML` when inserting text a user typed?
+
+`innerHTML` parses the string as HTML, so anything markup-shaped in it becomes real elements; `textContent` inserts it as literal text. Feeding user input through `innerHTML` is how cross-site scripting gets in, so reach for `textContent` unless you specifically need the string to render as markup.
+
+## What do `defer` and `async` change about a `<script>` tag?
+
+Both let the HTML carry on parsing while the script downloads. `defer` runs the script after parsing finishes, in document order; `async` runs it the moment it arrives, in whatever order the downloads happen to land. A plain `<script>` with neither blocks parsing until it has downloaded and run.
