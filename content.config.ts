@@ -17,6 +17,22 @@ export default defineContentConfig({
         status: z.enum(["answered", "questions-only"]),
       }),
     }),
+    // One file per solved challenge — see CHALLENGES.md.
+    challenges: defineCollection({
+      type: "page",
+      source: "challenges/**/*.md",
+      schema: z.object({
+        slug: z.string(),
+        title: z.string(),
+        /** Where it came from, e.g. "LeetCode 1" or "Advent of Code 2024 d3". */
+        source: z.string().optional(),
+        url: z.string().optional(),
+        difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
+        tags: z.array(z.string()).default([]),
+        /** ISO date, used to sort newest first. */
+        completed: z.string().optional(),
+      }),
+    }),
     // One file per deck. Everything a card needs lives in the Markdown, so
     // adding a card is adding an `##` heading — see FLASHCARDS.md.
     flashcards: defineCollection({

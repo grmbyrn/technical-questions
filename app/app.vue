@@ -45,6 +45,7 @@ useHead({
 const pageTitle = computed(() => {
   if (current.value) return `${current.value.number}. ${current.value.title}`;
   if (route.path.startsWith("/flashcards")) return "Flashcards";
+  if (route.path.startsWith("/challenges")) return "Code Challenges";
   return "Interview Prep";
 });
 
@@ -108,6 +109,10 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
           <NuxtLink class="navlink answered" active-class="active" to="/flashcards">
             <span class="dot flash" />
             Flashcards
+          </NuxtLink>
+          <NuxtLink class="navlink answered" active-class="active" to="/challenges">
+            <span class="dot flash" />
+            Code Challenges
           </NuxtLink>
 
           <template v-for="(item, i) in navItems" :key="i">

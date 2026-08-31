@@ -79,3 +79,43 @@ find returns undefined when no post matches the slug, so reading the title off u
 ---
 
 1, 3 and 4.
+
+## In the App Router, what kind of component do you get by default?
+
+A Server Component, it runs on the server and sends HTML
+
+Every component is a Server Component until you opt into the browser with the use client directive.
+
+## How do you turn a component into a Client Component?
+
+Add the string 'use client' as the first line of the file
+
+The directive goes at the very top, above the imports, and marks the file (and what it imports) as browser code.
+
+## Which of these force a component to be a Client Component? Select all that apply.
+
+(select multiple)
+
+1. Attaching an onClick or onChange handler
+
+2. Using useState or useEffect
+
+3. Reading data from a local module and rendering it
+
+4. Calling a hook like usePathname
+
+---
+
+**1, 2, 3**
+
+## A Server Component renders a Client Component and passes it data. How does the data get across?
+
+As props, the server passes data down to the client component
+
+Props are the bridge: the server holds the data, the client island receives it and handles interaction.
+
+## Why does the nav that highlights the current link have to be a Client Component?
+
+It calls usePathname, a hook, and hooks only run in the browser
+
+Reading the current URL with usePathname is client-side, so the component needs use client.

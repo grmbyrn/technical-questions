@@ -122,7 +122,7 @@ undefined; Express never reads the body on its own
 
 Not an empty object, not raw text: undefined, as in never looked. express.json() is what parses labeled JSON bodies into req.body.
 
-## Why does a create route answer 201 with the new object in the body?
+## Why does a create route answer 201 with the new object in the body?
 
 201 says a new resource now exists, and the body is the client's only way to learn the id the server assigned
 
@@ -134,7 +134,7 @@ The server builds the object and picks the id; the 201 response is where the cli
 
 Bad input is a client-side problem with the request, which is exactly what 400 Bad Request names.
 
-## What is the difference between PUT and PATCH?
+## What is the difference between PUT and PATCH?
 
 PUT sends the complete new version of the resource; PATCH sends only the fields that changed
 
@@ -155,3 +155,49 @@ Same member path, same lookup, opposite contract about what the body carries.
 ---
 
 **1 and 3** The miss guard works on every method: you cannot remove what does not exist, and the server should say so honestly.
+
+## What does calling next() inside a middleware do?
+
+Hands the request to the next matching stop in the pipeline
+
+next() is the handoff: my part is done, keep going. Without it the request stops and nothing ever answers.
+
+## A logger middleware is registered at the very bottom of the file, below the routes and the JSON-404 catch-all. What does it log?
+
+Nothing, ever: every request is answered above it, and an answered request stops moving
+
+The pipeline is the file, top to bottom, and it ends at the first send. Below a catch-all that answers everything, no request remains.
+
+## How do you make a middleware run for one route only?
+
+Pass it to that route as an argument, between the path and the handler
+
+app.post("/api/tickets", requireKey, handler): the gate runs for this route alone, and only a next() call lets the request through to the handler.
+
+## What makes Express treat a middleware as an error handler?
+
+It declares four parameters: (err, req, res, next)
+
+Express counts the parameters. Four is the signal, which is why err comes first and why next stays in the signature even when unused.
+
+## A POST arrives with no API key AND a body missing its required field. The key gate rides the route; the validation lives in the handler. What answers?
+
+401: the gate runs before the handler, so validation never sees the body
+
+Pipeline order decides. The gate refuses and returns; the handler, and the validation inside it, never runs.
+
+## Which of these are middleware?
+
+(select multiple)
+
+1. app.listen(3000)
+
+2. app.use(express.json())
+
+3. The JSON-404 catch-all registered with app.use
+
+4. A key gate passed to a route between the path and the handler
+
+---
+
+**2, 3, 4** The body parser is middleware: it does its work on every request and hands off with next().

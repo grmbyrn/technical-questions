@@ -1,22 +1,36 @@
 #!/usr/bin/env node
 /**
- * Lints the flashcard decks, and fixes the fixable part.
+ * Lints the hand-written Markdown under content/ — the flashcard decks and the
+ * challenge write-ups — and fixes the fixable part.
  *
  *   npm run check-decks     report problems
  *   npm run fix-decks       rewrite the ones that can be fixed automatically
  *
  * No server needed — this reads the Markdown directly, so it is the fast way
- * to find out why a card is not showing up the way you wrote it.
+ * to find out why a card or a write-up is not showing up the way you wrote it.
  */
 import fs from "node:fs";
 import path from "node:path";
 
 const FIX = process.argv.includes("--fix");
-const DIR = path.join(import.meta.dirname, "..", "content", "flashcards");
+const CONTENT = path.join(import.meta.dirname, "..", "content");
 
-const decks = fs.existsSync(DIR)
-  ? fs.readdirSync(DIR).filter((f) => f.endsWith(".md")).sort()
-  : [];
+/**
+ * Both folders get the same treatment for the silent failures — invisible
+ * characters and raw HTML — since those are properties of Markdown, not of
+ * what the file is for. Only the decks get the card-specific checks.
+ */
+const list = (dir) =>
+  fs.existsSync(path.join(CONTENT, dir))
+    ? fs
+        .readdirSync(path.join(CONTENT, dir))
+        .filter((f) => f.endsWith(".md"))
+        .sort()
+        .map((f) => ({ dir, file: f, cards: dir === "flashcards" }))
+    : [];
+
+const files = [...list("flashcards"), ...list("challenges")];
+const decks = files.filter((f) => f.cards);
 
 let problems = 0;
 let fixed = 0;
@@ -47,9 +61,10 @@ const TAGS = new RegExp(
 
 const backtick = (segment) => segment.replace(TAGS, (m) => `\`${m}\``);
 
-for (const file of decks) {
-  const where = `flashcards/${file}`;
-  const src = fs.readFileSync(path.join(DIR, file), "utf8");
+for (const { dir, file, cards } of files) {
+  const where = `${dir}/${file}`;
+  const full = path.join(CONTENT, dir, file);
+  const src = fs.readFileSync(full, "utf8");
   const lines = src.split("\n");
   const out = [];
   let fenced = false;
@@ -60,9 +75,12 @@ for (const file of decks) {
   if (!front) problem(where, "no frontmatter — needs at least a `title:`");
   else {
     if (!/^title:/m.test(front)) problem(where, "frontmatter has no `title:`");
+    if (!cards && !/^slug:/m.test(front)) {
+      problem(where, "frontmatter has no `slug:` — the challenge has no URL");
+    }
 
     // a duplicate `order` leaves the deck sequence up to the database
-    const order = front.match(/^order: (.*)$/m)?.[1]?.trim();
+    const order = cards ? front.match(/^order: (.*)$/m)?.[1]?.trim() : undefined;
     if (order !== undefined) {
       if (orders.has(order)) {
         problem(where, `order ${order} is already used by ${orders.get(order)}`);
@@ -70,7 +88,7 @@ for (const file of decks) {
     }
   }
 
-  if (!/^## /m.test(src)) {
+  if (cards && !/^## /m.test(src)) {
     console.warn(`… ${where}: no cards yet — a card is a \`## \` heading`);
   }
 
@@ -130,7 +148,7 @@ for (const file of decks) {
 
     // Cards are identified by their question, so two identical questions share
     // a score in the test rounds.
-    if (line.startsWith("## ")) {
+    if (cards && line.startsWith("## ")) {
       const key = line
         .slice(3)
         .replace(/\s*\[[^\]]+\]\s*$/, "")
@@ -182,16 +200,24 @@ for (const file of decks) {
   });
 
   if (fenced) problem(where, "a ``` code fence is never closed");
-  if (changed) fs.writeFileSync(path.join(DIR, file), out.join("\n"));
+  if (changed) fs.writeFileSync(full, out.join("\n"));
 }
 
-const cards = decks.reduce(
-  (n, f) =>
-    n + (fs.readFileSync(path.join(DIR, f), "utf8").match(/^## /gm) ?? []).length,
+const cardCount = decks.reduce(
+  (n, d) =>
+    n +
+    (fs
+      .readFileSync(path.join(CONTENT, d.dir, d.file), "utf8")
+      .match(/^## /gm) ?? []).length,
   0,
 );
+const challenges = files.length - decks.length;
 
-console.log(`\n${decks.length} decks — ${cards} cards`);
+console.log(
+  `\n${decks.length} decks — ${cardCount} cards; ${challenges} challenge${
+    challenges === 1 ? "" : "s"
+  }`,
+);
 
 if (FIX) {
   console.log(

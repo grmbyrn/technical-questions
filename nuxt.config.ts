@@ -17,6 +17,20 @@ const sectionRoutes = fs
     return `/${slug}`;
   });
 
+/** Same deal for the challenge write-ups, which live one directory down. */
+const challengeDir = path.join(contentDir, "challenges");
+const challengeRoutes = fs.existsSync(challengeDir)
+  ? fs
+      .readdirSync(challengeDir)
+      .filter((f) => f.endsWith(".md"))
+      .map((f) => {
+        const src = fs.readFileSync(path.join(challengeDir, f), "utf8");
+        const slug = src.match(/^slug: (.*)$/m)?.[1]?.trim();
+        if (!slug) throw new Error(`challenges/${f} has no slug`);
+        return `/challenges/${slug}`;
+      })
+  : [];
+
 export default defineNuxtConfig({
   modules: ["@nuxt/content"],
   css: ["~/assets/css/main.css"],
@@ -24,7 +38,12 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-01",
   nitro: {
     prerender: {
-      routes: [...sectionRoutes, "/flashcards"],
+      routes: [
+        ...sectionRoutes,
+        ...challengeRoutes,
+        "/flashcards",
+        "/challenges",
+      ],
       crawlLinks: true,
     },
   },
