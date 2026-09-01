@@ -201,3 +201,49 @@ Pipeline order decides. The gate refuses and returns; the handler, and the valid
 ---
 
 **2, 3, 4** The body parser is middleware: it does its work on every request and hands off with next().
+
+## What do the braces do in import { albums } from "./data/albums.js"?
+
+Pick a named export, by its exported name
+
+Braces mean a named import: { albums } matches export const albums, spelling and all. Whatever the file exported by name, the braces select.
+
+## A controller file at controllers/guests.js needs the data from data/guests.js. Which path does its import use?
+
+"../data/guests.js"
+
+The controller lives inside controllers/, so the data folder is one step up: two dots, then down into data/, full filename included.
+
+## A router is mounted with app.use("/api/plants", plantsRouter) and declares router.get("/:id", getPlant). Which request does that route answer?
+
+GET /api/plants/:id
+
+The mount is the prefix. Every path inside the router is relative to /api/plants, so "/:id" answers /api/plants/7 and friends.
+
+## What does export default router give the importing file?
+
+The file's main thing, importable without braces under any name
+
+Default exports are one per file, and the importer picks the name: import albumsRouter from ... . It is the same flavor as import express from "express".
+
+## In the split structure, where does the find-the-record-and-guard-the-miss logic live?
+
+In a controller function, exported from controllers/
+
+Controllers do the work: find, guard, answer. The routes file only says which address hands off to which controller.
+
+## After the full split, which of these still belong in server.js?
+
+(select multiple)
+
+1. app.use("/api/guests", guestsRouter)
+
+2. app.listen(3000)
+
+3. router.get("/:id", getGuestById)
+
+4. app.use(express.json())
+
+---
+
+**1, 2, 3** Mounting is exactly what server.js is for: one line per resource, wiring the routers in.
