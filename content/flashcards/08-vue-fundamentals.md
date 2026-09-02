@@ -4,7 +4,7 @@ order: 8
 tags: [vue-fundamentals]
 ---
 
-## What is the shorthand for v-bind:src?
+## What is the shorthand for v-bind:src?
 
 :src
 
@@ -36,13 +36,13 @@ It is removed from the page entirely
 
 v-if false means the element does not exist in the page until the condition turns true.
 
-## Why does every v-for element need a :key?
+## Why does every v-for element need a :key?
 
 It gives each rendered item a stable identity so Vue tracks it correctly when the array changes
 
 With stable keys, Vue knows which existing element belongs to which item through reorders, inserts, and removals.
 
-## Which of these are valid ways to apply classes from data? Select all that apply.
+## Which of these are valid ways to apply classes from data? Select all that apply.
 
 (select multiple)
 
@@ -90,7 +90,7 @@ total recalculates to 40 on its own
 
 The function read quantity, so quantity is a dependency, and any dependency change triggers a recalculation.
 
-## Which of these statements about ref and reactive are true? Select all that apply.
+## Which of these statements about ref and reactive are true? Select all that apply.
 
 (select multiple)
 
@@ -112,17 +112,11 @@ import StatBadge from "./StatBadge.vue" in App's <script setup>
 
 An imported component is immediately usable as a tag. Script setup exposes it to the template the same way it exposes a ref.
 
-## A component declares defineProps(["label"]) without saving the return value. How does its template show the label?
+## A component declares defineProps(["label"]) without saving the return value. How does its template show the label?
 
 {{ label }}
 
 Declared props work in the template like refs: the bare name in double curly braces.
-
-## A card needs its year prop to arrive as the number 2001, not a string. Which usage does that?
-
-<FilmCard :year="2001" />
-
-The colon binds the attribute, so the value is evaluated as JavaScript and 2001 stays a number.
 
 ## A child component runs emit("save", draft). How does the parent receive draft?
 
@@ -130,7 +124,7 @@ The colon binds the attribute, so the value is evaluated as JavaScript and 2001 
 
 The parent listens for the child's event by name, and the emitted payload arrives as the handler's argument.
 
-## Which of these statements about component communication are true?
+## Which of these statements about component communication are true?
 
 (select multiple)
 

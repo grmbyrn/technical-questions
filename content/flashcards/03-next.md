@@ -106,7 +106,7 @@ The directive goes at the very top, above the imports, and marks the file (and w
 
 ---
 
-**1, 2, 3**
+**1, 2, 4**
 
 ## A Server Component renders a Client Component and passes it data. How does the data get across?
 

@@ -214,25 +214,25 @@ Braces mean a named import: { albums } matches export const albums, spelling and
 
 The controller lives inside controllers/, so the data folder is one step up: two dots, then down into data/, full filename included.
 
-## A router is mounted with app.use("/api/plants", plantsRouter) and declares router.get("/:id", getPlant). Which request does that route answer?
+## A router is mounted with app.use("/api/plants", plantsRouter) and declares router.get("/:id", getPlant). Which request does that route answer?
 
 GET /api/plants/:id
 
 The mount is the prefix. Every path inside the router is relative to /api/plants, so "/:id" answers /api/plants/7 and friends.
 
-## What does export default router give the importing file?
+## What does export default router give the importing file?
 
 The file's main thing, importable without braces under any name
 
 Default exports are one per file, and the importer picks the name: import albumsRouter from ... . It is the same flavor as import express from "express".
 
-## In the split structure, where does the find-the-record-and-guard-the-miss logic live?
+## In the split structure, where does the find-the-record-and-guard-the-miss logic live?
 
 In a controller function, exported from controllers/
 
 Controllers do the work: find, guard, answer. The routes file only says which address hands off to which controller.
 
-## After the full split, which of these still belong in server.js?
+## After the full split, which of these still belong in server.js?
 
 (select multiple)
 

@@ -178,7 +178,7 @@ The common defence people cite — that `<script>` tags inserted via `innerHTML`
 
 So: `textContent` for text, `createElement` plus `setAttribute` for structure, and if you genuinely need to render user-supplied HTML, sanitise it with something like DOMPurify, or use the `setHTML` API where it is available. A content security policy is worth having as a second layer, and Trusted Types can make the unsafe sink impossible to reach at all.
 
-## What is the DOM, and how is it structured? (E)
+## What is the DOM, and how is it structured? (E)
 
 The DOM is the browser's in-memory representation of a parsed document, exposed as an object model that scripts can read and change. It is not the HTML source and it is not what you see on screen — the source is text, the DOM is a tree of objects, and rendering is a separate stage built from the DOM plus the CSSOM.
 
