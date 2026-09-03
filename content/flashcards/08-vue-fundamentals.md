@@ -139,3 +139,43 @@ The parent listens for the child's event by name, and the emitted payload arrive
 ---
 
 **1, 4** Fallback content keeps a wrapper component usable even with empty tags.
+
+## On a text input, `v-model="name"` is shorthand for which pair?
+
+`:value="name"` plus `@input="name = $event.target.value"`
+
+That is the whole trick: the value binds down and every input event writes back up. v-model wraps the loop in one directive.
+
+## Three checkboxes for picking pizza toppings share one ref. What should the ref start as?
+
+`ref([])`
+
+A checkbox group collects the checked value attributes into an array, so the ref must start as one.
+
+## A guest count is bound with plain `v-model="guests"`. The user types 4, and the template renders `{{ guests + 1 }}`. What shows up?
+
+41
+
+Text fields produce strings, so guests holds "4" and + glues on the 1. v-model.number casts the input so the math works.
+
+## What does the .prevent in @submit.prevent="save" actually do?
+
+Calls the event's preventDefault(), cancelling the browser's page-reloading default submit
+
+The submit still fires and the handler still runs. Only the built-in reload is cancelled, so your state survives.
+
+## Which of these statements about v-model are true?
+
+(select multiple)
+
+1. .trim converts the typed text into a number
+
+2. It works on a <textarea> just like on a text input
+
+3. v-model.lazy updates the ref on the change event instead of every keystroke
+
+4. A <select> bound with v-model also needs a @change listener to work
+
+---
+
+**2, 3** Multi-line text binds the same way. Interpolating between the tags is the thing that does not work.
