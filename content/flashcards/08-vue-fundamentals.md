@@ -179,3 +179,53 @@ The submit still fires and the handler still runs. Only the built-in reload is c
 ---
 
 **2, 3** Multi-line text binds the same way. Interpolating between the tags is the thing that does not work.
+
+## When does the callback you pass to onMounted run?
+
+Right after the component's elements land in the page
+
+That is the mounted moment. Script setup has run, the template has rendered, and the page really contains the component.
+
+## A list will be filled by a fetch in onMounted. Why should the ref start as ref([]) rather than ref()?
+
+The component renders before the data arrives, and the first render needs something v-for can loop over
+
+The first paint happens while the fetch is still in flight. An empty array loops zero times and renders cleanly, then the assignment re-renders with rows.
+
+## A fetch reaches the server, which answers with a 404. There is no res.ok check. What happens?
+
+The promise resolves normally and the catch block never runs on its own
+
+fetch treats any delivered response as success, even a 404. Turning a bad status into an error is the res.ok guard's whole job.
+
+## Which of these correctly watches the ref count?
+
+1. watch("count", (newValue) => { ... })
+
+2. count.watch((newValue) => { ... })
+
+3. watch(count, (newValue) => { ... })
+
+4. watch(count.value, (newValue) => { ... })
+
+---
+
+watch(count, (newValue) => { ... })
+
+watch takes the ref itself as the source. Vue tracks it and runs the callback on every change.
+
+## Which of these statements are true?
+
+(select multiple)
+
+1. A fetch inside onMounted delays the first render until the data arrives
+
+2. A finally block runs whether the fetch succeeded or failed
+
+3. A watch callback receives the new value and the old value
+
+4. onMounted runs again on every re-render
+
+---
+
+**2, 3** That is what makes finally the reliable place to end a loading state: both stories pass through it.
