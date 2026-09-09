@@ -119,3 +119,33 @@ Props are the bridge: the server holds the data, the client island receives it a
 It calls usePathname, a hook, and hooks only run in the browser
 
 Reading the current URL with usePathname is client-side, so the component needs use client.
+
+## Where does the fetch in an async Server Component run?
+
+On the server, before the HTML is sent to the browser
+
+Server Components run on the server, so the data is fetched there and the page arrives already filled in.
+
+## How do you load data inside an async Server Component?
+
+Make the component async and await fetch right in the function body
+
+No useEffect, no useState. You await the data and return JSX that uses it.
+
+## Why does an async Server Component not need a loading spinner for its first render?
+
+The server waits for the data and sends HTML that already contains it
+
+Because the await happens on the server before the response, the browser receives a finished page. Slow fetches are handled with loading UI, which is the next chapter.
+
+## In Next.js, what is the default caching behavior of fetch?
+
+Not cached: each request fetches fresh data unless you opt in
+
+You opt into caching with cache: force-cache or next: revalidate. no-store keeps it always fresh.
+
+## The server characters page fetches the characters and renders CharacterFilter, a Client Component, passing characters to it. How does CharacterFilter receive the data?
+
+As props: the server fetches the data and passes it down
+
+Server fetches, client interacts. The page does the fetch and hands the result to the client island as a prop.

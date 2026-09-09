@@ -71,6 +71,8 @@ onBeforeUnmount(() => document.removeEventListener("keydown", onKey));
 
 <template>
   <div>
+    <VitePwaManifest />
+
     <header class="topbar">
       <button
         class="menubtn"
