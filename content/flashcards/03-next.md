@@ -120,7 +120,7 @@ It calls usePathname, a hook, and hooks only run in the browser
 
 Reading the current URL with usePathname is client-side, so the component needs use client.
 
-## Where does the fetch in an async Server Component run?
+## Where does the fetch in an async Server Component run?
 
 On the server, before the HTML is sent to the browser
 
@@ -138,13 +138,13 @@ The server waits for the data and sends HTML that already contains it
 
 Because the await happens on the server before the response, the browser receives a finished page. Slow fetches are handled with loading UI, which is the next chapter.
 
-## In Next.js, what is the default caching behavior of fetch?
+## In Next.js, what is the default caching behavior of fetch?
 
 Not cached: each request fetches fresh data unless you opt in
 
 You opt into caching with cache: force-cache or next: revalidate. no-store keeps it always fresh.
 
-## The server characters page fetches the characters and renders CharacterFilter, a Client Component, passing characters to it. How does CharacterFilter receive the data?
+## The server characters page fetches the characters and renders CharacterFilter, a Client Component, passing characters to it. How does CharacterFilter receive the data?
 
 As props: the server fetches the data and passes it down
 
