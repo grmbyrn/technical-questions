@@ -177,14 +177,57 @@ h1 {
   margin-bottom: 24px;
   scroll-margin-top: 24px;
 }
+/* every answered question is a fold, so the page opens as a list of prompts.
+   The rows are separated by a rule rather than by space: closed, they should
+   read as a stack of one-liners, not as headings floating in a column. */
 .qa {
-  margin-bottom: 30px;
+  border-bottom: 1px solid var(--rule);
+}
+.qa.plain {
+  padding: 12px 0;
+}
+details.qa > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 12px 0;
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+}
+details.qa > summary::-webkit-details-marker {
+  display: none;
+}
+details.qa > summary::before {
+  content: "\25B8";
+  flex: none;
+  color: var(--accent);
+  font-size: 1.05em;
+  line-height: 1.3;
+  transition: transform 0.12s ease;
+}
+details.qa[open] > summary::before {
+  transform: rotate(90deg);
+}
+details.qa > summary:hover h2 {
+  color: var(--accent);
+}
+details.qa > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.qa-body {
+  padding: 2px 0 22px 25px;
 }
 h2 {
   font-size: var(--fs-h3);
   line-height: 1.35;
   letter-spacing: -0.012em;
   margin: 0 0 9px;
+}
+/* inside a summary the heading is the row itself, so it carries no margin */
+details.qa > summary h2 {
+  margin: 0;
 }
 .tag {
   font-family: var(--mono);
@@ -230,6 +273,62 @@ h3 {
 .follow pre {
   margin-left: 0;
 }
+/* the prompts one story covers — folded away so the answer stays the thing
+   you see first, and the summary row is the only cost when it is closed */
+.connected {
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--codebg);
+  margin: 0 0 13px;
+  font-size: var(--fs-flist);
+}
+.connected > summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 7px 12px;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.connected > summary::-webkit-details-marker {
+  display: none;
+}
+.connected > summary::before {
+  content: "\25B8";
+  display: inline-block;
+  margin-right: 8px;
+  font-size: 0.9em;
+  transition: transform 0.12s ease;
+}
+.connected[open] > summary::before {
+  transform: rotate(90deg);
+}
+.connected > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+.connected ul {
+  padding: 0 12px 0 30px;
+  margin: 0 0 10px;
+}
+.connected li {
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 3px;
+}
+.connected p {
+  font-size: var(--fs-tag);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  margin: 10px 0 6px;
+  padding: 0 12px;
+}
+.connected > *:first-child + * {
+  margin-top: 8px;
+}
+
 .qlist {
   padding-left: 20px;
   margin: 0;
@@ -254,6 +353,12 @@ h3 {
 .flist li::before {
   content: "\2013";
   margin-right: 7px;
+}
+.qlist .connected {
+  margin: 6px 0 8px;
+}
+.qa:last-of-type {
+  border-bottom: 0;
 }
 .pager {
   display: flex;
@@ -355,6 +460,20 @@ h3 {
   aside,
   .topbar,
   .scrim {
+    display: none;
+  }
+  /* folds would otherwise print as a summary line and nothing else; two rules
+     because Chrome hides the content through ::details-content and the older
+     engines through the child box itself */
+  .qa-body,
+  .connected > div {
+    display: block !important;
+  }
+  details::details-content {
+    content-visibility: visible !important;
+  }
+  details.qa > summary::before,
+  .connected > summary::before {
     display: none;
   }
   .layout {
@@ -518,6 +637,19 @@ h3 {
   .flist li {
     font-style: normal; /* italics at small sizes read poorly on phones */
   }
+  /* the summaries are the only controls in the prose column — give them a thumb */
+  details.qa > summary {
+    padding: 14px 0;
+  }
+  .qa-body {
+    padding-left: 0;
+  }
+  .connected > summary {
+    padding: 11px 14px;
+  }
+  .connected ul {
+    padding: 0 14px 0 32px;
+  }
   pre {
     padding: 12px;
   }
@@ -544,6 +676,10 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   aside {
+    transition: none;
+  }
+  details.qa > summary::before,
+  .connected > summary::before {
     transition: none;
   }
 }

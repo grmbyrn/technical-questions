@@ -15,17 +15,43 @@ const count = (s, re) => (s.match(re) ?? []).length;
 
 const files = fs.readdirSync(DIR).filter((f) => f.endsWith(".md")).sort();
 let failures = 0;
-let totals = { questions: 0, followups: 0, code: 0 };
+let totals = {
+  questions: 0,
+  folds: 0,
+  followups: 0,
+  code: 0,
+  connected: 0,
+  connectedItems: 0,
+};
 
 for (const file of files) {
   const src = fs.readFileSync(path.join(DIR, file), "utf8");
   const front = src.match(/^---\n([\s\S]*?)\n---/)[1];
   const slug = front.match(/^slug: (.*)$/m)[1].trim();
 
+  // `### Connected questions` is not a follow-up heading — it is the folded
+  // list of other prompts the answer above it covers, so it is counted apart
+  const connectedSrc = [
+    ...src.matchAll(/^### Connected questions\b[^\n]*\n([\s\S]*?)(?=\n#{2,3} |$(?![\s\S]))/gim),
+  ];
+
+  // a question with anything written under it renders as a fold; one still
+  // waiting on an answer stays a bare heading
+  const withContent = src
+    .split(/^## /m)
+    .slice(1)
+    .filter((b) => b.split("\n").slice(1).some((l) => l.trim() !== "")).length;
+
   const expected = {
     questions: count(src, /^## /gm),
-    followups: count(src, /^### /gm),
+    folds: withContent,
+    followups: count(src, /^### /gm) - connectedSrc.length,
     code: count(src, /^```/gm) / 2,
+    connected: connectedSrc.length,
+    connectedItems: connectedSrc.reduce(
+      (n, m) => n + count(m[1], /^\s*[-*] /gm),
+      0,
+    ),
   };
 
   const res = await fetch(`${BASE}/${slug}`);
@@ -35,11 +61,27 @@ for (const file of files) {
     continue;
   }
   const html = await res.text();
-  const main = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+  const full = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
+
+  // pull the folded blocks out first so their <li>s cannot be mistaken for
+  // questions and their <details> cannot hide a dropped one
+  const connectedHtml = [
+    ...full.matchAll(/<details class="connected"[\s\S]*?<\/details>/g),
+  ].map((m) => m[0]);
+  const main = full.replace(/<details class="connected"[\s\S]*?<\/details>/g, "");
 
   // a section picks its layout from its own content — the moment one answer is
   // written it switches to headings — so read back which one it actually used
   const layout = main.includes('<ul class="qlist">') ? "list" : "headings";
+
+  // the question list has no folds of its own; only the heading layout does
+  if (layout === "list") expected.folds = 0;
+
+  const connectedActual = {
+    folds: count(main, /<details class="qa"[ >]/g),
+    connected: connectedHtml.length,
+    connectedItems: connectedHtml.reduce((n, b) => n + count(b, /<li[ >]/g), 0),
+  };
 
   let actual;
   if (layout === "headings") {
@@ -48,6 +90,7 @@ for (const file of files) {
       questions: count(main, /<h2[ >]/g),
       followups: count(main, /<h3[ >]/g),
       code: count(main, /<pre[ >]/g),
+      ...connectedActual,
     };
   } else {
     // questions are top-level <li>, follow-ups are <li> nested in .flist
@@ -58,6 +101,7 @@ for (const file of files) {
       questions: count(main, /<li[ >]/g) - nested,
       followups: nested,
       code: count(main, /<pre[ >]/g),
+      ...connectedActual,
     };
   }
 
@@ -73,7 +117,14 @@ for (const file of files) {
     continue;
   }
 
-  const bad = ["questions", "followups", "code"].filter(
+  const bad = [
+    "questions",
+    "folds",
+    "followups",
+    "code",
+    "connected",
+    "connectedItems",
+  ].filter(
     (k) => actual[k] !== expected[k],
   );
   if (bad.length) {
@@ -127,7 +178,9 @@ if (decks.length) {
 
 console.log(
   `\n${files.length} pages crawled — ${totals.questions} questions, ` +
-    `${totals.followups} follow-ups, ${totals.code} code blocks\n` +
+    `${totals.folds} of them folded, ${totals.followups} follow-ups, ` +
+    `${totals.code} code blocks, ` +
+    `${totals.connectedItems} connected prompts in ${totals.connected} block(s)\n` +
     `${decks.length} decks — ${cards} flashcards`,
 );
 if (failures) {
