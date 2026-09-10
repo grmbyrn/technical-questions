@@ -149,3 +149,69 @@ You opt into caching with cache: force-cache or next: revalidate. no-store keeps
 As props: the server fetches the data and passes it down
 
 Server fetches, client interacts. The page does the fetch and hands the result to the client island as a prop.
+
+## Which special file does Next show while a page's data is still loading?
+
+loading.tsx
+
+Next wraps the page in a Suspense boundary and streams loading.tsx until the data is ready.
+
+## What must be at the very top of an error.tsx file?
+
+The use client directive
+
+An error boundary runs in the browser to catch the error and offer a retry, so error.tsx must be a Client Component.
+
+## An error.tsx component receives error and reset props. What is reset for?
+
+Retrying the failed render without reloading the whole page
+
+Calling reset() re-renders the page, so a Try again button can recover from a transient failure.
+
+## How do you tell Next to show the nearest not-found.tsx for a missing item?
+
+Call notFound() from next/navigation
+
+notFound() stops rendering the page and shows the nearest not-found.tsx.
+
+## You place a loading.tsx in app/books. Which pages does it cover?
+
+/books and the pages nested under it, like /books/[id], until a deeper folder provides its own
+
+A special file applies to its own segment and everything below it, unless a closer one overrides it.
+
+## A page returns HTML for a person to look at. What does a route handler return?
+
+Data, usually JSON, for other code to read
+
+Route handlers are how you serve data instead of a screen - your own client components, scripts, or other apps fetch them.
+
+## Which file turns a folder under app/ into an API endpoint?
+
+route.ts
+
+A route.ts at app/api/snippets answers /api/snippets. The folders are the URL.
+
+## Inside a POST handler, how do you read the JSON the client sent?
+
+await request.json()
+
+The body arrives as a stream; request.json() parses it, and it is async so you await it.
+
+## Your POST created a record successfully. Which status code should you send back?
+
+201
+
+201 Created is the conventional status for a request that made a new resource.
+
+## A request comes in as /api/snippets?q=clamp. How do you read the q value?
+
+new URL(request.url).searchParams.get('q')
+
+Build a URL from request.url and read its searchParams; .get returns the value or null.
+
+## Stash's search box is a Client Component. Why does it fetch /api/snippets instead of importing the snippets module directly?
+
+It runs in the browser, which cannot import a server-side module - but it can fetch a URL
+
+That is the whole reason the endpoint exists: it bridges server data to code running in the browser.
