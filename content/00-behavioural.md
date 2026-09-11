@@ -66,3 +66,15 @@ Also usable for:
 - “Tell me about a time you reduced technical debt.”
 - “Tell me about a time you had to work independently.”
 - “Tell me about a time you identified an opportunity for improvement.”
+
+---
+
+## Tell me about a time you worked under pressure.
+
+One example that comes to mind was when I was brought onto the 26th UN Tourism General Assembly project, where we had a fixed six-week deadline to take what was essentially a bare-bones website and make it ready for the event. The site needed to provide delegates from 114 countries with everything from the event schedule and information about Riyadh and Saudi Arabia to details about the assembly and an event-specific app. The deadline was completely fixed because the website needed to be useful from the moment the event began, so getting it live late wasn't really an option.
+
+My initial responsibility was mainly around implementing the content and styling, but it quickly became clear that the CEO wouldn't have time to take that work into the project himself, so my role expanded to building the entire website from the Figma designs. I therefore owned the technical implementation across the frontend, including deciding how to structure components, use hooks, consume API data and turn the designs into a production-ready application.
+
+To keep the deadline under control, I worked with the PO to create a Kanban board containing everything that needed to be delivered and used that to separate the important work from the lower-priority items. We had a planning meeting every morning to establish the day's priorities, stayed in communication throughout the day as requirements or designs changed, and reviewed what we'd completed at the end of each day so we could start the next morning with a clear plan. One particularly challenging area was the event schedule table, because the client changed the design several times and on a couple of occasions the layout had to be substantially reworked across different screen sizes. I'd already isolated that functionality into its own component, so I could make those changes without affecting the rest of the site. I also validated the site across different browsers and devices and paid particular attention to things like the event countdown, testing it with different times to make sure it would disappear at exactly the right point.
+
+By the time the event started, the website was live and everything worked as expected. It handled the launch successfully, including 3,000+ concurrent users, with zero downtime. I was particularly proud that throughout the six weeks I never felt the need to panic about the deadline. I had a system, I trusted the prioritization we'd established, communicated closely with the team, and kept moving through the work. We received great feedback from the PO, CEO and others involved in the project, and I received a letter of recommendation at the end. The experience reinforced for me that when the pressure is high, the best thing I can do is stay calm, create structure, and focus on consistently executing the next most important thing.
