@@ -186,19 +186,19 @@ Data, usually JSON, for other code to read
 
 Route handlers are how you serve data instead of a screen - your own client components, scripts, or other apps fetch them.
 
-## Which file turns a folder under app/ into an API endpoint?
+## Which file turns a folder under app/ into an API endpoint?
 
 route.ts
 
 A route.ts at app/api/snippets answers /api/snippets. The folders are the URL.
 
-## Inside a POST handler, how do you read the JSON the client sent?
+## Inside a POST handler, how do you read the JSON the client sent?
 
 await request.json()
 
 The body arrives as a stream; request.json() parses it, and it is async so you await it.
 
-## Your POST created a record successfully. Which status code should you send back?
+## Your POST created a record successfully. Which status code should you send back?
 
 201
 
@@ -210,7 +210,7 @@ new URL(request.url).searchParams.get('q')
 
 Build a URL from request.url and read its searchParams; .get returns the value or null.
 
-## Stash's search box is a Client Component. Why does it fetch /api/snippets instead of importing the snippets module directly?
+## Stash's search box is a Client Component. Why does it fetch /api/snippets instead of importing the snippets module directly?
 
 It runs in the browser, which cannot import a server-side module - but it can fetch a URL
 
